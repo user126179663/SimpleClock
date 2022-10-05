@@ -1,4 +1,4 @@
-class SimpleClock extends HTMLElement {
+class SuperClock extends HTMLElement {
 	
 	static getValues(id, defaultValue = []) {
 		
@@ -17,7 +17,7 @@ class SimpleClock extends HTMLElement {
 						padPseudo: 'clockPadPseudo' in dataset || !!('clockDisabledPadPseudo' in dataset) || padPseudo,
 						padStr: 'clockPadStr' in dataset ? dataset.clockPadStr : padStr,
 						value: 'clock' in dataset ? dataset.clock : value,
-						values: 'clockValues' in dataset ? SimpleClock.getValues(dataset.clockValues) : []
+						values: 'clockValues' in dataset ? SuperClock.getValues(dataset.clockValues) : []
 					};
 		
 	}
@@ -43,7 +43,7 @@ class SimpleClock extends HTMLElement {
 		
 		super(),
 		
-		this.tick = SimpleClock.tick.bind(this);
+		this.tick = SuperClock.tick.bind(this);
 		
 		this.last = {};
 		
@@ -73,35 +73,32 @@ class SimpleClock extends HTMLElement {
 		if (!(clock instanceof HTMLElement)) return;
 		
 		const	{ now } = this,
-				{ pad, padPseudo, padStr, value, values } = SimpleClock.fetch(clock, this),
+				{ pad, padPseudo, padStr, value, values } = SuperClock.fetch(clock, this),
 				padAbs = Math.abs(pad);
-		let i,v,v0, from, remained,value0;
+		let i,i0,v,v0, from, remained,value0,vk;
 		
 		switch (value0 = value?.toLowerCase?.()) {
 			
 			case 'y':
-			from = [ (i = now.getFullYear()) + 1,0,1, 0,0,0,0 ], v = values[i] ?? this.vY[i] ?? i;
+			from = [ (i = now.getFullYear()) + 1,0,1, 0,0,0,0 ];
 			break;
 			
 			case 'm':
 			const m = now.getMonth(), nm = m === 11 ? 0 : m + 1;
-			from = [ now.getFullYear() + !nm,nm,1,0,0,0,0 ], v = values[i = nm ? m : 0] ?? this.vM[i] ?? i + 1;
+			from = [ now.getFullYear() + !nm,nm,1,0,0,0,0 ], i0 = (i = nm ? m : 0) + 1;
 			break;
 			
 			case 'd':
-			from = [ new Date(now.getFullYear(),now.getMonth(),i = now.getDate(), 0,0,0,0).getTime() + 86400000 ],
-			v = values[i] ?? this.vD[i] ?? i;
+			from = [ new Date(now.getFullYear(),now.getMonth(),i = now.getDate(), 0,0,0,0).getTime() + 86400000 ];
 			break;
 			
 			case 'h':
 			from =
-				[ new Date(now.getFullYear(),now.getMonth(),now.getDate(), i = now.getHours(),0,0,0).getTime() + 3600000 ],
-			v = values[i] ?? this.vH[i] ?? i;
+				[ new Date(now.getFullYear(),now.getMonth(),now.getDate(), i = now.getHours(),0,0,0).getTime() + 3600000 ];
 			break;
 			case 'h12':
 			(i = now.getHours()) > 11 && (i -= 12),
-			from = [ new Date(now.getFullYear(),now.getMonth(),now.getDate(), now.getHours(),0,0,0).getTime() + 3600000 ],
-			v = values[i] ?? this.vH12[i] ?? i;
+			from = [ new Date(now.getFullYear(),now.getMonth(),now.getDate(), now.getHours(),0,0,0).getTime() + 3600000 ];
 			break;
 			
 			case 'mi':
@@ -110,8 +107,7 @@ class SimpleClock extends HTMLElement {
 					now.getFullYear(),now.getMonth(),now.getDate(),
 					now.getHours(),i = now.getMinutes(),0,0
 				).getTime() + 60000
-			],
-			v = values[i] ?? this.vMi[i] ?? i;
+			];
 			break;
 			
 			case 's':
@@ -120,22 +116,20 @@ class SimpleClock extends HTMLElement {
 					now.getFullYear(),now.getMonth(),now.getDate(),
 					now.getHours(),now.getMinutes(),i = now.getSeconds(),0
 				).getTime() + 1000
-			],
-			v = values[i] ?? this.vS[i] ?? i;
+			];
 			break;
 			
 			case 'ms':
-			from = [ (i = now.getTime()) + 1 ],
-			v = values[i] ?? this.vMS[i] ?? i;
+			from = [ (i = now.getTime()) + 1 ];
 			break;
 			
 			case 'dn':
-			v = values[i = now.getDay()] ?? this.vDN[i] ?? i,
+			i = now.getDay(), vk = 'vDN',
 			from = [ new Date(now.getFullYear(),now.getMonth(),now.getDate(), 0,0,0,0).getTime() + 86400000 ];
 			break;
 			
 			case 'hn':
-			v = values[i = (v0 = now.getHours()) / 12|0] ?? this.vHN[i] ?? i,
+			i = (v0 = now.getHours()) / 12|0, vk = 'vHN',
 			from = [
 				new Date(
 					now.getFullYear(),now.getMonth(),now.getDate(),
@@ -146,11 +140,11 @@ class SimpleClock extends HTMLElement {
 			break;
 			
 			default:
-			from = [ (i = now.getTime()) + 1 ], v = values[i] ?? this.vMS[i] ?? i;
+			from = [ (i = now.getTime()) + 1 ];
 			
 		}
 		
-		//clock.dataset.clockRemainedTime = (new Date(...from).getTime() - now.getTime()) / 1000 / this.speed + 's';
+		v = values[i] ?? this[vk ||= 'v' + value0[0].toUpperCase() + value0.slice(1)][i] ?? i0 ?? i;
 		
 		if (pad && padPseudo && padStr) {
 			
@@ -187,7 +181,7 @@ class SimpleClock extends HTMLElement {
 	
 	getValues(key, defaultValue) {
 		
-		return SimpleClock.getValues(this.getAttribute('v-' + key), defaultValue);
+		return SuperClock.getValues(this.getAttribute('v-' + key), defaultValue);
 		
 	}
 	
@@ -195,8 +189,6 @@ class SimpleClock extends HTMLElement {
 		
 		const	{ from = 0 } = this, diff = this.getDiff(),
 				origin = typeof diff === 'number' ? from + diff : diff ? new Date(diff|0)?.getTime?.() : from;
-		
-		
 		
 		return this.floor ? (origin / 1000|0) * 1000 : origin;
 		
@@ -246,11 +238,11 @@ class SimpleClock extends HTMLElement {
 	get vD() { return this.getValues('d'); }
 	set vD(v) { this.setAttribute('v-d', v); }
 	
-	get vDN() { return this.getValues('dn', SimpleClock.dn); }
+	get vDN() { return this.getValues('dn', SuperClock.dn); }
 	set vDN(v) { this.setAttribute('v-dn', v); }
-	get vHN() { return this.getValues('hn', SimpleClock.hn); }
+	get vHN() { return this.getValues('hn', SuperClock.hn); }
 	set vHN(v) { this.setAttribute('v-hn', v); }
-	get vH12() { return this.getValues('h12', SimpleClock.hn); }
+	get vH12() { return this.getValues('h12'); }
 	set vH12(v) { this.setAttribute('v-h12', v); }
 	
 	get vH() { return this.getValues('h'); }
@@ -306,14 +298,14 @@ class EnumValue extends HTMLElement {
 		
 	}
 	
-	get type() { return this.getAttribute('type'); }
-	set type(v) { this.setAttribute('type', v); }
-	
 	get key() { return this.getAttribute('key'); }
 	set key(v) { this.setAttribute('key', v); }
+	
+	get type() { return this.getAttribute('type'); }
+	set type(v) { this.setAttribute('type', v); }
 	
 }
 
 customElements.define('enum-values', EnumValues),
 customElements.define('enum-value', EnumValue),
-customElements.define('simple-clock', SimpleClock);
+customElements.define('super-clock', SuperClock);
