@@ -24,10 +24,10 @@ class SuperClock extends HTMLElement {
 	
 	static tick() {
 		
-		const { from } = this, clocks = this.querySelectorAll('[data-clock]'), l = clocks.length;
+		const { from, origin, speed } = this, clocks = this.querySelectorAll('[data-clock]'), l = clocks.length;
 		let i;
 		
-		i = -1, this.now = new Date(this.origin + (Date.now() - from) * this.speed);
+		i = -1, this.now = new Date(origin + (Date.now() - from) * speed);
 		while (++i < l) this.write(clocks[i]);
 		
 	};
@@ -155,19 +155,24 @@ class SuperClock extends HTMLElement {
 			
 		} else pad && (v = (''+v)['pad' + (pad < 0 ? 'End' : 'Start')](padAbs, padStr));
 		
-		this.last[value0] === v || (
+		// timing を対象の値に近い値（例えば data-clock="s" を指定した要素を含む時に、timing="1000" にするなど）にすると、
+		// 処理時間などによって生じる誤差を丸め切れずに、時間の変更間隔が不正確になる場合がある。
+		// 例えば timing="1000" で、1000,2000,3001,4002,... と、経過時間+処理時間で 1 ミリ秒ずつ増えるなど。
+		// 実際のところ、対応不能かどうか判断しきれないところがあるが、現状は timing の値を 100 ミリ秒以下にすることでこの問題を回避できる。
+		this.last[value0] === i || (
+			
 			clock.style.setProperty(
 					'--clock-tack-time',
 					(v0 = (new Date(...from).getTime() - now.getTime()) / this.speed) / 1000 + 's'
 				),
 			
-			this.last[value0] = v, resetCSSAnime(clock, 'tick'),
+			this.last[value0] = i, resetCSSAnime(clock, 'tick'),
+			
+			clock.textContent = v,
 			
 			this.dispatchEvent(new CustomEvent('tick-' + value0, { detail: { clock, tack: v0 } }))
 			
-		),
-		
-		clock.textContent = v;
+		);
 		
 	}
 	
