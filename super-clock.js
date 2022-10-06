@@ -24,15 +24,25 @@ class SuperClock extends HTMLElement {
 	
 	static tick() {
 		
-		const { from, origin, speed } = this, clocks = this.querySelectorAll('[data-clock]'), l = clocks.length;
+		const	{ from, origin, speed, timing } = this, clocks = this.querySelectorAll('[data-clock]'), l = clocks.length,
+				current = Date.now(), lag = this.tack ? (current - this.tack) - timing : 0;
 		let i;
 		
-		i = -1, this.now = new Date(origin + (Date.now() - from) * speed);
+		this.tack && (this.accumulation += lag),
+		i = -1, this.now = new Date(origin + (current - from) * speed);
+		//this.now = new Date(origin + ((current - this.accumulation) - from) * speed);
 		while (++i < l) this.write(clocks[i]);
+		
+		this.tack = Date.now(), this.clock = setTimeout(this.tick, timing);
 		
 	};
 	
 	static {
+		
+		this.PAD = 0,
+		this.SETDATA = 'clockValue',
+		this.SPEED = 1,
+		this.TIMING = 67,
 		
 		this.dn = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ],
 		this.hn = [ 'AM', 'PM' ];
@@ -50,21 +60,22 @@ class SuperClock extends HTMLElement {
 	}
 	connectedCallback() {
 		
-		this.set();
+		this.auto && this.start();
 		
 	}
 	
-	set() {
+	start() {
 		
+		this.accumulation = 0,
 		this.from ??= Date.now(),
 		
-		this.tick(), this.clock ||= setInterval(this.tick, this.timing);
+		this.clock || this.tick();
 		
 	}
 	stop() {
 		
 		clearInterval(this.clock),
-		this.clock = null;
+		delete this.clock;
 		
 	}
 	
@@ -158,17 +169,28 @@ class SuperClock extends HTMLElement {
 		// timing を対象の値に近い値（例えば data-clock="s" を指定した要素を含む時に、timing="1000" にするなど）にすると、
 		// 処理時間などによって生じる誤差を丸め切れずに、時間の変更間隔が不正確になる場合がある。
 		// 例えば timing="1000" で、1000,2000,3001,4002,... と、経過時間+処理時間で 1 ミリ秒ずつ増えるなど。
+		// 開発ツールで対象の要素の CSS 変数 --clock-tack-time の変化を追い続けるとこの誤差を視覚的に確認し易い。
 		// 実際のところ、対応不能かどうか判断しきれないところがあるが、現状は timing の値を 100 ミリ秒以下にすることでこの問題を回避できる。
+		// 対応としては、この関数の実行時間を常に 0.0 秒 と仮定すれば次の時間までの厳密な差を得ることができるが（例えば一秒後は常に一秒後になる）、
+		// 誤差は常に存在し続けるので、現実の時間と実行時間との差が一秒以上開いた時にこの時計の時間は二秒進むことになる。
+		// これは例えば現実の時間が 2.3 秒の時、3.3 秒を一秒後にすれば、差は常に厳密に 1 秒だが、
+		// 現実の時間の取得には常にラグが加算され続けるので、2.4,2.5,2.6... とミリ秒が増えてゆく。
+		// その間、時計は常に 2 秒を示し続けるが、この誤差が 2 秒の範囲を超えた時、それまで 2 秒を示し続けていた時計は、
+		// 2.0 + 0.9(誤差) + 1.0(次の秒) < 4, 2.0 + 1.0(誤差) + 1.0(次の秒) === 4 となり、2 秒の次の秒が 4 秒になる。
 		this.last[value0] === i || (
 			
 			clock.style.setProperty(
 					'--clock-tack-time',
-					(v0 = (new Date(...from).getTime() - now.getTime()) / this.speed) / 1000 + 's'
+					(v0 = (new Date(...from).getTime() - now.getTime()) * this.speed) / 1000 + 's'
 				),
+			clock.hasAttribute('data-clock-disabled-setdata') || (
+				clock.hasAttribute('data-clock-value') && (clock.dataset['clockValue'] = v),
+				this.hasAttribute('setdata') && (clock.dataset[this.setdata] = v)
+			),
+			this.last[value0] = i,
+			resetCSSAnime(clock, 'tick'),
 			
-			this.last[value0] = i, resetCSSAnime(clock, 'tick'),
-			
-			clock.textContent = v,
+			this.mute || clock.dataset.clockMute || (clock.textContent = v),
 			
 			this.dispatchEvent(new CustomEvent('tick-' + value0, { detail: { clock, tack: v0 } }))
 			
@@ -190,6 +212,13 @@ class SuperClock extends HTMLElement {
 		
 	}
 	
+	get auto() { return this.hasAttribute('auto'); }
+	set auto(v) {
+		
+		!!v ? this.clock || (this.start(), this.setAttribute('auto', '')) : this.removeAttribute('auto');
+		
+	}
+	
 	get origin() {
 		
 		const	{ from = 0 } = this, diff = this.getDiff(),
@@ -204,7 +233,7 @@ class SuperClock extends HTMLElement {
 		
 		const v = Math.abs(+this.getAttribute('timing')|0);
 		
-		return Number.isNaN(v) ? 1000 : v;
+		return Number.isNaN(v) ? SuperClock.TIMING : v;
 		
 	}
 	set timing(v) { this.setAttribute('timing', v); }
@@ -213,7 +242,7 @@ class SuperClock extends HTMLElement {
 		
 		const v = +this.getAttribute('pad')|0;
 		
-		return Number.isNaN(v) ? 0 : v;
+		return Number.isNaN(v) ? SuperClock.PAD : v;
 		
 	}
 	set pad(v) { this.setAttribute('pad', v); }
@@ -227,14 +256,20 @@ class SuperClock extends HTMLElement {
 	get floor() { return this.hasAttribute('floor'); }
 	set floor(v) { this.setAttribute('floor', v); }
 	
+	get mute() { return this.hasAttribute('mute'); }
+	set mute(v) { this.setAttribute('mute', v); }
+	
 	get speed() {
 		const v = +this.getAttribute('speed') ?? 1;
-		return Number.isNaN(v) ? 1 : v;
+		return Number.isNaN(v) ? SuperClock.SPEED : v;
 	}
 	set speed(v) { this.setAttribute('speed', v); }
 	
 	get value() { return this.getAttribute('value'); }
 	set value(v) { this.setAttribute('value', v); }
+	
+	get setdata() { return this.getAttribute('setdata') || SuperClock.SETDATA; }
+	set setdata(v) { this.setAttribute('setdata', v); }
 	
 	get vY() { return this.getValues('y'); }
 	set vY(v) { this.setAttribute('v-y', v); }
