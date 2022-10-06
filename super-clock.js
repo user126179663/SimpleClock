@@ -40,9 +40,11 @@ class SuperClock extends HTMLElement {
 	static {
 		
 		this.PAD = 0,
+		this.PADSTR = '0',
 		this.SETDATA = 'clockValue',
 		this.SPEED = 1,
 		this.TIMING = 67,
+		this.VALUE = 't',
 		
 		this.dn = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ],
 		this.hn = [ 'AM', 'PM' ];
@@ -151,7 +153,7 @@ class SuperClock extends HTMLElement {
 			break;
 			
 			default:
-			from = [ (i = now.getTime()) + 1 ];
+			value0 = 't', from = [ (i = now.getTime()) + 1 ];
 			
 		}
 		
@@ -185,10 +187,10 @@ class SuperClock extends HTMLElement {
 				),
 			clock.hasAttribute('data-clock-disabled-setdata') || (
 				clock.hasAttribute('data-clock-value') && (clock.dataset['clockValue'] = v),
-				this.hasAttribute('setdata') && (clock.dataset[this.setdata] = v)
+				this.hasAttribute('setdata') && clock.setAttribute('data-' + this.setdata, v)
 			),
 			this.last[value0] = i,
-			resetCSSAnime(clock, 'tick'),
+			clock.classList.remove('tick'), void clock.offsetWidth, clock.classList.add('tick'),
 			
 			this.mute || clock.dataset.clockMute || (clock.textContent = v),
 			
@@ -233,7 +235,7 @@ class SuperClock extends HTMLElement {
 		
 		const v = Math.abs(+this.getAttribute('timing')|0);
 		
-		return Number.isNaN(v) ? SuperClock.TIMING : v;
+		return Number.isNaN(v) || !v ? SuperClock.TIMING : v;
 		
 	}
 	set timing(v) { this.setAttribute('timing', v); }
@@ -247,7 +249,7 @@ class SuperClock extends HTMLElement {
 	}
 	set pad(v) { this.setAttribute('pad', v); }
 	
-	get padStr() { return this.getAttribute('pad-str') ?? ''; }
+	get padStr() { return this.hasAttribute('pad-str') ? this.getAttribute('pad-str') : SuperClock.PADSTR; }
 	set padStr(v) { this.setAttribute('pad-str', v); }
 	
 	get padPseudo() { return this.hasAttribute('pad-pseudo'); }
@@ -260,12 +262,12 @@ class SuperClock extends HTMLElement {
 	set mute(v) { this.setAttribute('mute', v); }
 	
 	get speed() {
-		const v = +this.getAttribute('speed') ?? 1;
-		return Number.isNaN(v) ? SuperClock.SPEED : v;
+		const v = this.getAttribute('speed') || SuperClock.SPEED, v0 = +v;
+		return Number.isNaN(v0) ? SuperClock.SPEED : v0;
 	}
 	set speed(v) { this.setAttribute('speed', v); }
 	
-	get value() { return this.getAttribute('value'); }
+	get value() { return this.getAttribute('value') || SuperClock.VALUE; }
 	set value(v) { this.setAttribute('value', v); }
 	
 	get setdata() { return this.getAttribute('setdata') || SuperClock.SETDATA; }
@@ -293,6 +295,8 @@ class SuperClock extends HTMLElement {
 	set vS(v) { this.setAttribute('v-s', v); }
 	get vMS() { return this.getValues('ms'); }
 	set vMS(v) { this.setAttribute('v-ms', v); }
+	get vT() { return this.getValues('t'); }
+	set vT(v) { this.setAttribute('v-t', v); }
 	
 }
 
