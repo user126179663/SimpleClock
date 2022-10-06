@@ -54,9 +54,12 @@
 ## value
 　子孫要素に設定できる属性 ``data-clock`` の既定値を設定します。既定値は ``t`` です。
 
+# イベント
+## tick-*
+
 # CSS変数
 　以下の [CSS 変数](https://developer.mozilla.org/ja/docs/Web/CSS/--*) は、属性 ``data-clock`` を指定された子孫要素に自動的に設定されます。
-## --clock-tack-time
+## --clock-tack-time, --clock-tack-*
 　``data-clock`` が示す日時の値が、次の値に切り替わるまでにかかる時間を CSS のデータ型 [<time>](https://developer.mozilla.org/ja/docs/Web/CSS/time) で示します。単位は秒単位の ``s`` です。例えば、``data-clock="s"`` である場合、``--clock-tack-time`` の値は概ね ``1s`` に近い値を示します。
 
 　この CSS 変数が必要な理由は、日時の値が切り替わる時に、切り替わりに掛かる時間が常に一定とは限らないためです。例えば秒数に応じて要素をアニメーションさせたい時、``animation: keyframes 1s linear 0s infinite...`` とすれば一秒毎にアニメーションが再生されますが、仮に時計の開始時間が 19:30 2.5 である場合、秒が次の値に切り替わる時間は 0.5 秒であるため、19:30 3.0 になっても、アニメーションが再生されるのはその 0.5 秒後になります。これはミリ秒や秒であれば無視できる差かもしれませんが、それ以外では決定的な差を生じさせます。時計の開始時間が 19:30 30.0 で、アニメーションの指定が ``animation: keyframes 60s linear 0s infinite...`` であれば、実際に分が切り替わってから 30 秒もあとにアニメーションが再生されることになります。この時、``--clock-tack-time`` には、``30s`` に近い値が設定され、その後、19:31 0.0 に切り替わった際は、``--clock-tack-time`` には ``60s`` に近い値が改めて設定されます。
@@ -73,12 +76,12 @@
 ```
 　この変数には、変数名の末尾の time を、``data-clock`` に指定した文字列に置き換えたエイリアスがあります。例えば ``data-clock="s"`` のエイリアスは ``--clock-tack-s``です。``--clock-tack-time`` は、該当の子孫要素に設定されますが、エイリアスはそれらの親となる ```<super-clock>``` 自身に設定されます。これは、子孫要素はすべてエイリアス変数が参照可能であることを意味します。
 
-# 子孫要素に設定可能な data- 属性
+# 子孫要素に設定可能な data-* 属性
 ## data-clock
 ## data-clock-disabled-setdata
 ## data-clock-mute
 ## data-clock-pad
-## data-clock-padPseudo
-## data-clock-padStr
+## data-clock-pad-pseudo
+## data-clock-pad-str
 ## data-clock-value
 ## data-clock-values
