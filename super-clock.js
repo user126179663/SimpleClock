@@ -88,7 +88,7 @@ class SuperClock extends HTMLElement {
 		const	{ now } = this,
 				{ pad, padPseudo, padStr, value, values } = SuperClock.fetch(clock, this),
 				padAbs = Math.abs(pad);
-		let i,i0,v,v0, from, remained,value0,vk;
+		let i,i0,v,v0,v1, from, remained,value0,vk;
 		
 		switch (value0 = value?.toLowerCase?.()) {
 			
@@ -183,12 +183,16 @@ class SuperClock extends HTMLElement {
 			
 			clock.style.setProperty(
 					'--clock-tack-time',
-					(v0 = (new Date(...from).getTime() - now.getTime()) * this.speed) / 1000 + 's'
+					v1 = (v0 = (new Date(...from).getTime() - now.getTime()) * this.speed) / 1000 + 's'
 				),
+			//clock.style.setProperty('--clock-tack-' + value0, v1),
+			this.style.setProperty('--clock-tack-' + value0, v1),
+			
 			clock.hasAttribute('data-clock-disabled-setdata') || (
-				clock.hasAttribute('data-clock-value') && (clock.dataset['clockValue'] = v),
+				clock.hasAttribute('data-clock-value') && (clock.dataset.clockValue = v),
 				this.hasAttribute('setdata') && clock.setAttribute('data-' + this.setdata, v)
 			),
+			
 			this.last[value0] = i,
 			clock.classList.remove('tick'), void clock.offsetWidth, clock.classList.add('tick'),
 			
