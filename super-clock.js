@@ -24,14 +24,23 @@ class SuperClock extends HTMLElement {
 	
 	static tick() {
 		
-		const	{ from, origin, speed, timing } = this, clocks = this.querySelectorAll('[data-clock]'), l = clocks.length,
+		const	{ from, last, origin, speed, style, timing } = this,
+				clocks = this.querySelectorAll('[data-clock]'), l = clocks.length,
 				current = Date.now(), lag = this.tack ? (current - this.tack) - timing : 0;
-		let i;
+		let i,k;
 		
 		this.tack && (this.accumulation += lag),
-		i = -1, this.now = new Date(origin + (current - from) * speed);
+		i = -1, this.now = new Date(origin + (current - from) * speed), last.updated.length = 0;
 		//this.now = new Date(origin + ((current - this.accumulation) - from) * speed);
 		while (++i < l) this.write(clocks[i]);
+		
+		if (last.updated.length) {
+			
+			for (k in last) style.setProperty('--clock-tack-' + k, last[k].v);
+			
+			this.dispatchEvent(new CustomEvent('tick', { detail: [ ...last.updated ] }));
+			
+		}
 		
 		this.tack = Date.now(), this.clock = setTimeout(this.tick, timing);
 		
@@ -55,9 +64,9 @@ class SuperClock extends HTMLElement {
 		
 		super(),
 		
-		this.tick = SuperClock.tick.bind(this);
+		this.tick = SuperClock.tick.bind(this),
 		
-		this.last = {};
+		this.last = { updated: [] };
 		
 	}
 	connectedCallback() {
@@ -88,7 +97,7 @@ class SuperClock extends HTMLElement {
 		const	{ now } = this,
 				{ pad, padPseudo, padStr, value, values } = SuperClock.fetch(clock, this),
 				padAbs = Math.abs(pad);
-		let i,i0,v,v0,v1, from, remained,value0,vk;
+		let i,i0,v,v0, from, remained,value0,vk, updated;
 		
 		switch (value0 = value?.toLowerCase?.()) {
 			
@@ -168,6 +177,8 @@ class SuperClock extends HTMLElement {
 			
 		} else pad && (v = (''+v)['pad' + (pad < 0 ? 'End' : 'Start')](padAbs, padStr));
 		
+		const last = this.last[value0] ??= {};
+		
 		// timing を対象の値に近い値（例えば data-clock="s" を指定した要素を含む時に、timing="1000" にするなど）にすると、
 		// 処理時間などによって生じる誤差を丸め切れずに、時間の変更間隔が不正確になる場合がある。
 		// 例えば timing="1000" で、1000,2000,3001,4002,... と、経過時間+処理時間で 1 ミリ秒ずつ増えるなど。
@@ -179,26 +190,26 @@ class SuperClock extends HTMLElement {
 		// 現実の時間の取得には常にラグが加算され続けるので、2.4,2.5,2.6... とミリ秒が増えてゆく。
 		// その間、時計は常に 2 秒を示し続けるが、この誤差が 2 秒の範囲を超えた時、それまで 2 秒を示し続けていた時計は、
 		// 2.0 + 0.9(誤差) + 1.0(次の秒) < 4, 2.0 + 1.0(誤差) + 1.0(次の秒) === 4 となり、2 秒の次の秒が 4 秒になる。
-		this.last[value0] === i || (
+		last.i === i || (
 			
 			clock.style.setProperty(
 					'--clock-tack-time',
-					v1 = (v0 = (new Date(...from).getTime() - now.getTime()) * this.speed) / 1000 + 's'
+					last.v = (v0 = (new Date(...from).getTime() - now.getTime()) * this.speed) / 1000 + 's'
 				),
-			//clock.style.setProperty('--clock-tack-' + value0, v1),
-			this.style.setProperty('--clock-tack-' + value0, v1),
+			
+			this.last.updated[this.last.updated.length] = updated = { name: value0, clock, tack: v0 },
 			
 			clock.hasAttribute('data-clock-disabled-setdata') || (
 				clock.hasAttribute('data-clock-value') && (clock.dataset.clockValue = v),
 				this.hasAttribute('setdata') && clock.setAttribute('data-' + this.setdata, v)
 			),
 			
-			this.last[value0] = i,
+			last.i = i,
 			clock.classList.remove('tick'), void clock.offsetWidth, clock.classList.add('tick'),
 			
 			this.mute || clock.dataset.clockMute || (clock.textContent = v),
 			
-			this.dispatchEvent(new CustomEvent('tick-' + value0, { detail: { clock, tack: v0 } }))
+			this.dispatchEvent(new CustomEvent('tick-' + value0, { detail: updated }))
 			
 		);
 		
