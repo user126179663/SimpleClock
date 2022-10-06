@@ -306,7 +306,8 @@ class EnumValues extends HTMLElement {
 	
 	valueOf() {
 		
-		const enumerated = this.querySelectorAll(':scope > enum-value'), l = enumerated.length, values = [];
+		const	enumerated = this.querySelectorAll(':scope > enum-value, :scope > enum-values'),
+				l = enumerated.length, values = [];
 		let i,i0,v,k, value;
 		
 		i = i0 = -1;
