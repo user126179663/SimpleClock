@@ -35,7 +35,7 @@
 ### pad-str
 　日時を示す文字列の文字数が属性 *[pad](#pad)* で指定された値に満たない場合、この属性に指定された値で不足を補います。既定値は文字列の ``0`` です。
 ### setdata
-　指定されていると、その値を子孫要素の属性 ``data-`` の名前として、その値に更新された時間を設定します。空文字を設定すると子孫要素の属性 *[clock-value](#clock-value)* の値が使われます。
+　指定されていると、その値を子孫要素の[カスタムデータ属性](https://developer.mozilla.org/ja/docs/Web/HTML/Global_attributes/data-\*)の名前として、更新された時間をその値に設定します。値が未指定か、空文字を指定すると、``data-clock-value`` に更新された値が指定されます。
 ### speed*
 　時間の進む速さを設定します。具体的には、属性 *[timing](timing)* で指定された値にこの属性に指定された値を乗算します。
 ### timing
@@ -146,6 +146,8 @@
 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[pad-pseudo](#pad-pseudo)* と同等ですが、この属性に指定された値は *[\<super-clock\>](#super-clock-日時更新要素)* の指定を上書きし、また該当要素に対してのみ適用されます。
 ### data-clock-pad-str
 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[pad-str](#pad-str)* と同等ですが、この属性に指定された値は *[\<super-clock\>](#super-clock-日時更新要素)* の指定を上書きし、また該当要素に対してのみ適用されます。
+### data-clock-value
+　論理属性で、指定されていると、更新された値がこのカスタムデータ属性にも設定されます。
 ### data-clock-values
 　指定された値と一致する属性 [id](https://developer.mozilla.org/ja/docs/Web/HTML/Global_attributes/id) を持つ *[\<enum-values\>](#enum-values-値列挙要素)* の値で、 *[data-clock](#data-clock)* に指定された日時の値を置き換えます。 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 ```v-*``` と同等ですが、この属性に指定された値は *[\<super-clock\>](#super-clock-日時更新要素)* の指定を上書きし、また該当要素に対してのみ適用されます。現在の日時の値は *[\<enum-values\>](#enum-values-値列挙要素)* 内の子要素 *[\<enum-value\>](#enum-value-列挙値要素)* の位置か、属性 *[key](#key)* の値と対応します。位置は、最初の子要素を ``0`` とします。
 ```HTML
@@ -189,3 +191,28 @@
 > 　値は *[parseInt](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/parseInt)* で変換されます。
 > #### float
 > 　値は *[parseFloat](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/parseFloat)* で変換されます。
+
+# 作例
+## 日付け付きの時計
+```HTML
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<meta charset="utf-8">
+		<title>日付け付きの時計 - SuperClock</title>
+		<script src="super-clock.js"></script>
+	</head>
+	<body>
+		
+		<super-clock pad="2" auto>
+			<div>
+				<span data-clock="y"></span>/<span data-clock="m"></span>/<span data-clock="d"></span>
+			</div>
+			<div>
+				<span data-clock="h"></span>:<span data-clock="mi"></span>:<span data-clock="s"></span>
+			</div>
+		</super-clock>
+		
+	</body>
+</html>
+```
