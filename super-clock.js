@@ -13,6 +13,8 @@ class SuperClock extends HTMLElement {
 				padRaw = 'clockPad' in element.dataset ? +element.dataset.clockPad|0 : NaN;
 		
 		return	{
+						asHTML: 'clockAsHTML' in dataset,
+						forceText: 'clockForceText' in dataset,
 						pad: Number.isNaN(padRaw) ? pad : padRaw,
 						padPseudo: 'clockPadPseudo' in dataset || !!('clockDisabledPadPseudo' in dataset) || padPseudo,
 						padStr: 'clockPadStr' in dataset ? dataset.clockPadStr : padStr,
@@ -95,7 +97,7 @@ class SuperClock extends HTMLElement {
 		if (!(clock instanceof HTMLElement)) return;
 		
 		const	{ now } = this,
-				{ pad, padPseudo, padStr, value, values } = SuperClock.fetch(clock, this),
+				{ asHTML, forceText, pad, padPseudo, padStr, value, values } = SuperClock.fetch(clock, this),
 				padAbs = Math.abs(pad);
 		let i,i0,v,v0, from, remained,value0,vk, updated;
 		
@@ -207,7 +209,8 @@ class SuperClock extends HTMLElement {
 			last.i = i,
 			clock.classList.remove('tick'), void clock.offsetWidth, clock.classList.add('tick'),
 			
-			this.mute || clock.dataset.clockMute || (clock.textContent = v),
+			this.mute || clock.dataset.clockMute ||
+				(clock[forceText && !asHTML && !this.asHTML ? 'textContent' : 'innerHTML'] = v),
 			
 			this.dispatchEvent(new CustomEvent('tick-' + value0, { detail: updated }))
 			
@@ -229,10 +232,14 @@ class SuperClock extends HTMLElement {
 		
 	}
 	
+	get asHTML() { return this.hasAttribute('as-html'); }
+	set asHTML(v) { v || typeof v === 'string' ? this.setAttribute('as-html', v) : this.removeAttribute('as-html'); }
+	
 	get auto() { return this.hasAttribute('auto'); }
 	set auto(v) {
 		
-		!!v ? this.clock || (this.start(), this.setAttribute('auto', '')) : this.removeAttribute('auto');
+		v || typeof v === 'string' ?
+			this.clock || (this.start(), this.setAttribute('auto', '')) : this.removeAttribute('auto');
 		
 	}
 	
@@ -268,13 +275,19 @@ class SuperClock extends HTMLElement {
 	set padStr(v) { this.setAttribute('pad-str', v); }
 	
 	get padPseudo() { return this.hasAttribute('pad-pseudo'); }
-	set padPseudo(v) { this.setAttribute('pad-pseudo', v); }
+	set padPseudo(v) {
+		v || typeof v === 'string' ? this.setAttribute('pad-pseudo', v) : this.removeAttribute('pad-psuedo');
+	}
 	
 	get floor() { return this.hasAttribute('floor'); }
-	set floor(v) { this.setAttribute('floor', v); }
+	set floor(v) {
+		v || typeof v === 'string' ? this.setAttribute('floor', v) : this.removeAttribute('floor');
+	}
 	
 	get mute() { return this.hasAttribute('mute'); }
-	set mute(v) { this.setAttribute('mute', v); }
+	set mute(v) {
+		v || typeof v === 'string' ? this.setAttribute('mute', v) : this.removeAttribute('mute');
+	}
 	
 	get speed() {
 		const v = this.getAttribute('speed') || SuperClock.SPEED, v0 = +v;
@@ -336,6 +349,9 @@ class EnumValues extends HTMLElement {
 		
 	}
 	
+	get key() { return this.getAttribute('key'); }
+	set key(v) { this.setAttribute('key', v); }
+	
 }
 class EnumValue extends HTMLElement {
 	
@@ -351,8 +367,8 @@ class EnumValue extends HTMLElement {
 		
 		switch (this.type) {
 			case 'bool': return fixed === 'true' ? true : fixed === 'false' || fixed === '0' ? false : !!fixed;
-			case 'int': return parseInt(fixed);
-			case 'float': return parseFloat(fixed);
+			case 'int': return Number.parseInt(fixed);
+			case 'float': return Number.parseFloat(fixed);
 			default: return v;
 		}
 		
