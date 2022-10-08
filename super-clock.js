@@ -1,3 +1,5 @@
+// todo css 変数関連の処理の可否を設定する属性の作成
+
 class SuperClock extends HTMLElement {
 	
 	static getValues(id, defaultValue = []) {
@@ -6,41 +8,28 @@ class SuperClock extends HTMLElement {
 		
 	}
 	
-	static fetch(element, sc) {
-		
-		const	{ pad, padPseudo, padStr, value } = sc,
-				{ dataset } = element,
-				padRaw = 'clockPad' in element.dataset ? +element.dataset.clockPad|0 : NaN;
-		
-		return	{
-						asHTML: 'clockAsHTML' in dataset,
-						forceText: 'clockForceText' in dataset,
-						pad: Number.isNaN(padRaw) ? pad : padRaw,
-						padPseudo: 'clockPadPseudo' in dataset || !!('clockDisabledPadPseudo' in dataset) || padPseudo,
-						padStr: 'clockPadStr' in dataset ? dataset.clockPadStr : padStr,
-						value: 'clock' in dataset ? dataset.clock : value,
-						values: 'clockValues' in dataset ? SuperClock.getValues(dataset.clockValues) : []
-					};
-		
-	}
-	
 	static tick() {
 		
 		const	{ from, last, origin, speed, style, timing } = this,
+				lastUpdatedClocks = last[SuperClock.updated],
 				clocks = this.querySelectorAll('[data-clock]'), l = clocks.length,
-				current = Date.now(), lag = this.tack ? (current - this.tack) - timing : 0;
-		let i,k;
+				current = Date.now(), lag = this.tack ? (current - this.tack) - timing : 0,
+				updateValue = {};
+		let i,i0,k, updated;
 		
 		this.tack && (this.accumulation += lag),
-		i = -1, this.now = new Date(origin + (current - from) * speed), last.updated.length = 0;
+		i = i0 = -1, this.now = new Date(origin + (current - from) * speed), lastUpdatedClocks.length = 0;
 		//this.now = new Date(origin + ((current - this.accumulation) - from) * speed);
-		while (++i < l) this.write(clocks[i]);
+		while (++i < l) (updated = this.write(clocks[i])),
+			(updateValue[typeof updated === 'string' ? updated : (lastUpdatedClocks[++i0] = updated).name] = updated);
 		
-		if (last.updated.length) {
+		for (k in last) k in updateValue || (delete last[k]);
+		
+		if (i0 !== -1) {
 			
-			for (k in last) style.setProperty('--clock-tack-' + k, last[k].v);
+			for (k in last) 'v' in last[k] && (style.setProperty('--clock-tack-' + k, last[k].v), delete last[k].v);
 			
-			this.dispatchEvent(new CustomEvent('tick', { detail: [ ...last.updated ] }));
+			this.dispatchEvent(new CustomEvent('tick', { detail: [ ...lastUpdatedClocks ] }));
 			
 		}
 		
@@ -52,13 +41,16 @@ class SuperClock extends HTMLElement {
 		
 		this.PAD = 0,
 		this.PADSTR = '0',
-		this.SETDATA = 'clockValue',
+		this.SETDATA = 'clock-value',
 		this.SPEED = 1,
+		this.TACK = 'tack',
 		this.TIMING = 67,
 		this.VALUE = 't',
 		
 		this.dn = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ],
-		this.hn = [ 'AM', 'PM' ];
+		this.hn = [ 'AM', 'PM' ],
+		
+		this.updated = Symbol('SuperClock.updated');
 		
 	}
 	
@@ -68,7 +60,7 @@ class SuperClock extends HTMLElement {
 		
 		this.tick = SuperClock.tick.bind(this),
 		
-		this.last = { updated: [] };
+		this.last = { [SuperClock.updated]: [] };
 		
 	}
 	connectedCallback() {
@@ -92,14 +84,33 @@ class SuperClock extends HTMLElement {
 		
 	}
 	
+	fetchClockData(element) {
+		
+		const	{ pad, padPseudo, padStr, tackName, value } = this,
+				{ dataset } = element,
+				padRaw = 'clockPad' in element.dataset ? +element.dataset.clockPad|0 : NaN;
+		
+		return	{
+						asHTML: 'clockAsHTML' in dataset,
+						forceText: 'clockForceText' in dataset,
+						pad: Number.isNaN(padRaw) ? pad : padRaw,
+						padPseudo: 'clockPadPseudo' in dataset || !!('clockDisabledPadPseudo' in dataset) || padPseudo,
+						padStr: 'clockPadStr' in dataset ? dataset.clockPadStr : padStr,
+						tack: 'clockTack' in dataset ? dataset.clockTack : tackName,
+						value: 'clock' in dataset ? dataset.clock : value,
+						values: 'clockValues' in dataset ? SuperClock.getValues(dataset.clockValues) : []
+					};
+		
+	}
+	
 	write(clock) {
 		
 		if (!(clock instanceof HTMLElement)) return;
 		
 		const	{ now } = this,
-				{ asHTML, forceText, pad, padPseudo, padStr, value, values } = SuperClock.fetch(clock, this),
+				{ asHTML, forceText, pad, padPseudo, padStr, tack, value, values } = this.fetchClockData(clock),
 				padAbs = Math.abs(pad);
-		let i,i0,v,v0, from, remained,value0,vk, updated;
+		let i,i0,v,v0, from, remained,value0,vk;
 		
 		switch (value0 = value?.toLowerCase?.()) {
 			
@@ -181,6 +192,8 @@ class SuperClock extends HTMLElement {
 		
 		const last = this.last[value0] ??= {};
 		
+		if (last.i === i) return value0;
+		
 		// timing を対象の値に近い値（例えば data-clock="s" を指定した要素を含む時に、timing="1000" にするなど）にすると、
 		// 処理時間などによって生じる誤差を丸め切れずに、時間の変更間隔が不正確になる場合がある。
 		// 例えば timing="1000" で、1000,2000,3001,4002,... と、経過時間+処理時間で 1 ミリ秒ずつ増えるなど。
@@ -192,29 +205,29 @@ class SuperClock extends HTMLElement {
 		// 現実の時間の取得には常にラグが加算され続けるので、2.4,2.5,2.6... とミリ秒が増えてゆく。
 		// その間、時計は常に 2 秒を示し続けるが、この誤差が 2 秒の範囲を超えた時、それまで 2 秒を示し続けていた時計は、
 		// 2.0 + 0.9(誤差) + 1.0(次の秒) < 4, 2.0 + 1.0(誤差) + 1.0(次の秒) === 4 となり、2 秒の次の秒が 4 秒になる。
-		last.i === i || (
-			
-			clock.style.setProperty(
-					'--clock-tack-time',
-					last.v = (v0 = (new Date(...from).getTime() - now.getTime()) * this.speed) / 1000 + 's'
-				),
-			
-			this.last.updated[this.last.updated.length] = updated = { name: value0, clock, tack: v0 },
-			
-			clock.hasAttribute('data-clock-disabled-setdata') || (
-				clock.hasAttribute('data-clock-value') && (clock.dataset.clockValue = v),
-				this.hasAttribute('setdata') && clock.setAttribute('data-' + this.setdata, v)
-			),
-			
-			last.i = i,
-			clock.classList.remove('tick'), void clock.offsetWidth, clock.classList.add('tick'),
-			
-			this.mute || clock.dataset.clockMute ||
-				(clock[forceText && !asHTML && !this.asHTML ? 'textContent' : 'innerHTML'] = v),
-			
-			this.dispatchEvent(new CustomEvent('tick-' + value0, { detail: updated }))
-			
-		);
+		
+		const updated = { name: value0, clock };
+		
+		last.i = i,
+		
+		this.mute || clock.dataset.clockMute ||
+			(clock[forceText && !asHTML && !this.asHTML ? 'textContent' : 'innerHTML'] = v),
+		
+		clock.hasAttribute('data-clock-disabled-setdata') || (
+			clock.hasAttribute('data-clock-value') && (clock.dataset.clockValue = v),
+			this.hasAttribute('setdata') && clock.setAttribute('data-' + this.setdata, v)
+		),
+		
+		updated.tack = (new Date(...from).getTime() - now.getTime()) * this.speed,
+		
+		tack && !clock.hasAttribute('data-clock-disabled-tack') && (
+						clock.style.setProperty('--clock-' + tack + '-time', last.v = updated.tack + 'ms'),
+						clock.classList.remove(tack), void clock.offsetWidth, clock.classList.add(tack)
+					),
+		
+		this.dispatchEvent(new CustomEvent('tick-' + value0, { detail: updated }));
+		
+		return updated;
 		
 	}
 	
@@ -243,6 +256,19 @@ class SuperClock extends HTMLElement {
 		
 	}
 	
+	get tackName () { return this.hasAttribute('tack') && (this.getAttribute('tack') || SuperClock.TACK); }
+	set tackName (v) { return v || typeof v === 'string' ? this.setAttribute('tack', v) : this.removeAttribute('tack'); }
+	
+	get floor() { return this.hasAttribute('floor'); }
+	set floor(v) {
+		v || typeof v === 'string' ? this.setAttribute('floor', v) : this.removeAttribute('floor');
+	}
+	
+	get mute() { return this.hasAttribute('mute'); }
+	set mute(v) {
+		v || typeof v === 'string' ? this.setAttribute('mute', v) : this.removeAttribute('mute');
+	}
+	
 	get origin() {
 		
 		const	{ from = 0 } = this, diff = this.getDiff(),
@@ -252,15 +278,6 @@ class SuperClock extends HTMLElement {
 		
 	}
 	set origin(v) { this.setAttribute('origin', v); }
-	
-	get timing() {
-		
-		const v = Math.abs(+this.getAttribute('timing')|0);
-		
-		return Number.isNaN(v) || !v ? SuperClock.TIMING : v;
-		
-	}
-	set timing(v) { this.setAttribute('timing', v); }
 	
 	get pad() {
 		
@@ -279,15 +296,8 @@ class SuperClock extends HTMLElement {
 		v || typeof v === 'string' ? this.setAttribute('pad-pseudo', v) : this.removeAttribute('pad-psuedo');
 	}
 	
-	get floor() { return this.hasAttribute('floor'); }
-	set floor(v) {
-		v || typeof v === 'string' ? this.setAttribute('floor', v) : this.removeAttribute('floor');
-	}
-	
-	get mute() { return this.hasAttribute('mute'); }
-	set mute(v) {
-		v || typeof v === 'string' ? this.setAttribute('mute', v) : this.removeAttribute('mute');
-	}
+	get setdata() { return this.getAttribute('setdata') || SuperClock.SETDATA; }
+	set setdata(v) { this.setAttribute('setdata', v); }
 	
 	get speed() {
 		const v = this.getAttribute('speed') || SuperClock.SPEED, v0 = +v;
@@ -295,11 +305,14 @@ class SuperClock extends HTMLElement {
 	}
 	set speed(v) { this.setAttribute('speed', v); }
 	
-	get value() { return this.getAttribute('value') || SuperClock.VALUE; }
-	set value(v) { this.setAttribute('value', v); }
-	
-	get setdata() { return this.getAttribute('setdata') || SuperClock.SETDATA; }
-	set setdata(v) { this.setAttribute('setdata', v); }
+	get timing() {
+		
+		const v = Math.abs(+this.getAttribute('timing')|0);
+		
+		return Number.isNaN(v) || !v ? SuperClock.TIMING : v;
+		
+	}
+	set timing(v) { this.setAttribute('timing', v); }
 	
 	get vY() { return this.getValues('y'); }
 	set vY(v) { this.setAttribute('v-y', v); }
@@ -325,6 +338,9 @@ class SuperClock extends HTMLElement {
 	set vMS(v) { this.setAttribute('v-ms', v); }
 	get vT() { return this.getValues('t'); }
 	set vT(v) { this.setAttribute('v-t', v); }
+	
+	get value() { return this.getAttribute('value') || SuperClock.VALUE; }
+	set value(v) { this.setAttribute('value', v); }
 	
 }
 

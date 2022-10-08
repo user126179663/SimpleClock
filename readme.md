@@ -38,6 +38,29 @@
 　指定されていると、その値を子孫要素の[カスタムデータ属性](https://developer.mozilla.org/ja/docs/Web/HTML/Global_attributes/data-\*)の名前として、更新された時間をその値に設定します。値が未指定か、空文字を指定すると、``data-clock-value`` に更新された値が指定されます。
 ### speed*
 　時間の進む速さを設定します。具体的には、属性 *[timing](timing)* で指定された値にこの属性に指定された値を乗算します。
+### tack
+　論理属性で、指定されていると以下の [CSS 変数](https://developer.mozilla.org/ja/docs/Web/CSS/--*)を設定します。値を指定すると、以下の変数名やクラス名の ```tack``` を、その値で置き換えます。
+> #### --clock-tack-time
+> 　属性 *[data-clock](#data-clock)* を指定された子孫要素に設定され、その属性が示す日時の値が次の値に切り替わるまでにかかる時間を CSS のデータ型 [\<time\>](https://developer.mozilla.org/ja/docs/Web/CSS/time) で示します。単位は ``ms`` です。例えば、``data-clock="s"`` である場合、``--clock-tack-time`` の値は概ね ``1s`` に近い値を示します。
+> 
+> 　この CSS 変数が必要な理由は、日時の値が切り替わる時に、切り替わりに掛かる時間が常に一定とは限らないためです。例えば秒数に応じて要素をアニメーションさせたい時、``animation: keyframes 1s linear 0s infinite...`` とすれば一秒毎にアニメーションが再生されますが、仮に時計の開始時間が 19:30 2.5 である場合、秒が次の値に切り替わる時間は 0.5 秒であるため、19:30 3.0 になっても、アニメーションが再生されるのはその 0.5 秒後になります。これはミリ秒や秒であれば無視できる差かもしれませんが、それ以外では決定的な差を生じさせます。時計の開始時間が 19:30 30.0 で、アニメーションの指定が ``animation: keyframes 60s linear 0s infinite...`` であれば、実際に分が切り替わってから 30 秒もあとにアニメーションが再生されることになります。この時、``--clock-tack-time`` には、``30s`` に近い値が設定され、その後、19:31 0.0 に切り替わった際は、``--clock-tack-time`` には ``60s`` に近い値が改めて設定されます。
+> 
+> 　この CSS 変数を CSS プロパティ [animation-iteration-count](https://developer.mozilla.org/ja/docs/Web/CSS/animation-iteration-count) の値を ```infinite``` に設定した上で [animation-duration](https://developer.mozilla.org/ja/docs/Web/CSS/animation-duration) に指定することは推奨されません。再生中のアニメーションは、プロパティに指定された CSS 変数の変化を反映しないためです。属性 *[tack](#tack)* が指定されていると、この CSS 変数を設定すると同時に、日時の値が切り替わった時に、該当の子孫要素のクラス名に ``tack`` を追加します。これは切り替わる度に追加操作が行なわれ、その際に要素に設定されたアニメーションを、その再生状態を問わずに初期化します。この動作に基づいて、以下の例のように指定すると、値の切り替わりと同時に要素を繰り返しアニメーションさせられます。
+> ```CSS
+> .tack {
+> 	animation: tack var(--clock-tack-time) linear 0s 1 normal forwards running;
+> }
+> @keyframes tack {
+> 	from { opacity: 1; }
+> 	to { opacity: 0; }
+> }
+> ```
+> 
+> #### --clock-tack-*
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* に設定される、各日時の次の値に切り替わるまでの時間を CSS のデータ型 [\<time\>](https://developer.mozilla.org/ja/docs/Web/CSS/time) で示した変数です。単位は ``ms`` です。アスタリスク ``*`` は *[各日時のパラメータ名](#日時のパラメータ名)* になります。
+> 
+> 　この変数が設定されるのは、子孫要素の *[data-clock](#data-clock)* に指定された *[日時のパラメータ名](#日時のパラメータ名)* に限ります。例えば子孫要素に ``data-clock="s"`` しかない場合、 *[\<super-clock\>](#super-clock-日時更新要素)* に設定される変数は ``--clock-tack-s`` だけです。
+
 ### timing
 　時間の更新間隔をミリ秒単位で指定します。値を小さくするほど、日時の更新は頻繁に行なわれます。これはミリ秒を表示させたい時に有利ですが、一方で極端に頻繁な更新はウェブページ全体のパフォーマンスを低下させる恐れがあります。
 
@@ -82,62 +105,41 @@
 ### tick-*
 　特定の日時が切り替わった時に、該当する子孫要素を発生源として通知されるイベントです。アスタリスク ``*`` は *[日時を示す各パラメータ名](#日時のパラメータ名)* です。コールバック関数の第一引数に与えられるイベントオブジェクトのプロパティ ``detail`` には *[SuperClockTickEventObject](#SuperClockTickEventObject)* が設定されます。
 
-## CSS変数
-　以下の [CSS 変数](https://developer.mozilla.org/ja/docs/Web/CSS/--*) は、属性 *[data-clock](#data-clock)* を指定された子孫要素に自動で設定されます。
-### --clock-tack-time
-　子孫要素の属性 *[data-clock](#data-clock)* が示す日時の値が、次の値に切り替わるまでにかかる時間を CSS のデータ型 [\<time\>](https://developer.mozilla.org/ja/docs/Web/CSS/time) で示します。単位は ``s`` です。例えば、``data-clock="s"`` である場合、``--clock-tack-time`` の値は概ね ``1s`` に近い値を示します。
-
-　この CSS 変数が必要な理由は、日時の値が切り替わる時に、切り替わりに掛かる時間が常に一定とは限らないためです。例えば秒数に応じて要素をアニメーションさせたい時、``animation: keyframes 1s linear 0s infinite...`` とすれば一秒毎にアニメーションが再生されますが、仮に時計の開始時間が 19:30 2.5 である場合、秒が次の値に切り替わる時間は 0.5 秒であるため、19:30 3.0 になっても、アニメーションが再生されるのはその 0.5 秒後になります。これはミリ秒や秒であれば無視できる差かもしれませんが、それ以外では決定的な差を生じさせます。時計の開始時間が 19:30 30.0 で、アニメーションの指定が ``animation: keyframes 60s linear 0s infinite...`` であれば、実際に分が切り替わってから 30 秒もあとにアニメーションが再生されることになります。この時、``--clock-tack-time`` には、``30s`` に近い値が設定され、その後、19:31 0.0 に切り替わった際は、``--clock-tack-time`` には ``60s`` に近い値が改めて設定されます。
-
-　この CSS 変数を CSS プロパティ [animation-iteration-count](https://developer.mozilla.org/ja/docs/Web/CSS/animation-iteration-count) の値を ```infinite``` に設定した上で [animation-duration](https://developer.mozilla.org/ja/docs/Web/CSS/animation-duration) に指定することは推奨されません。再生中のアニメーションは、プロパティに指定された CSS 変数の変化を反映しないためです。このカスタム要素は、この CSS 変数を設定すると同時に、日時の値が切り替わった時に、該当の子孫要素のクラス名に ``tack`` を追加します。これは切り替わる度に追加操作が行なわれ、その際に要素に設定されたアニメーションを、その再生状態を問わずに初期化します。この動作に基づいて、以下の例のように指定すると、値の切り替わりと同時に要素を繰り返しアニメーションさせられます。
-```CSS
-.tack {
-	animation: tack var(--clock-tack-time) linear 0s 1 normal forwards running;
-}
-@keyframes tack {
-	from { opacity: 1; }
-	to { opacity: 0; }
-}
-```
-
-### --clock-tack-*
-　*[\<super-clock\>](#super-clock-日時更新要素)* に設定される、各日時の次の値に切り替わるまでの時間を CSS のデータ型 [\<time\>](https://developer.mozilla.org/ja/docs/Web/CSS/time) で示した変数です。単位は ``s`` です。アスタリスク ``*`` は *[各日時のパラメータ名](#日時のパラメータ名)* になります。
-
-　この変数が設定されるのは、子孫要素の *[data-clock](#data-clock)* に指定された *[日時のパラメータ名](#日時のパラメータ名)* に限ります。例えば子孫要素に ``data-clock="s"`` しかない場合、 *[\<super-clock\>](#super-clock-日時更新要素)* に設定される変数は ``--clock-tack-s`` だけです。
-
 ## 対応する子孫要素のカスタムデータ属性
 　*[\<super-clock\>](#super-clock-日時更新要素)* に包含されるすべての要素は以下の[カスタムデータ属性(data-*)](https://developer.mozilla.org/ja/docs/Web/HTML/Global_attributes/data-\*)を指定することで、 *[\<super-clock\>](#super-clock-日時更新要素)* によって行なわれる処理を制御できます。
 ### data-clock
 　要素が *[\<super-clock\>](#super-clock-日時更新要素)* によって日時のどの部分として認識されるかを以下のパラメータ名によって示します。既定値は ``t`` です。 *[\<super-clock\>](#super-clock-日時更新要素)* は、この属性が指定された子孫要素のみを処理の対象とします。
-#### 日時のパラメータ名
-##### y
-　西暦の「年」を示します。
-##### m
-　西暦の「月」を示します。
-##### d
-　西暦の「日」を示します。
-##### h
-　24時間制の「時」を示します。
-##### mi
-　「分」を示します。
-##### s
-　「秒」を示します。
-##### ms
-　「ミリ秒」を示します。
-##### dn
-　「曜日」を示します。曜日は整数値で表され、日曜日を ``0`` として、土曜日まで ``1`` ずつ加算されていきます。
-##### hn
-　「午前」、「午後」を示します。午前は ``0``、午後は ``1`` で表されます。
-##### h12
-　12時間制の「時」を示します。
-##### t
-　UNIX 元期の時間を示します。
+> #### 日時のパラメータ名
+> ##### y
+> 　西暦の「年」を示します。
+> ##### m
+> 　西暦の「月」を示します。
+> ##### d
+> 　西暦の「日」を示します。
+> ##### h
+> 　24時間制の「時」を示します。
+> ##### mi
+> 　「分」を示します。
+> ##### s
+> 　「秒」を示します。
+> ##### ms
+> 　「ミリ秒」を示します。
+> ##### dn
+> 　「曜日」を示します。曜日は整数値で表され、日曜日を ``0`` として、土曜日まで ``1`` ずつ加算されていきます。
+> ##### hn
+> 　「午前」、「午後」を示します。午前は ``0``、午後は ``1`` で表されます。
+> ##### h12
+> 　12時間制の「時」を示します。
+> ##### t
+> 　UNIX 元期の時間を示します。
 ### data-clock-as-html
 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[as-html](#as-html)* と同等ですが、この属性に指定された値は *[\<super-clock\>](#super-clock-日時更新要素)* の指定を上書きし、また該当要素に対してのみ適用されます。
 ### data-clock-force-text
 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[as-html](#as-html)* とこの要素に *[data-clock-as-html](#data-clock-as-html)* の指定にかかわらず、 *[\<super-clock\>](#super-clock-日時更新要素)* によってこの要素の内容として書き込まれる値をプレーンテキストとして扱うことを強制します。
 ### data-clock-disabled-setdata
 　論理属性で、この属性が指定された要素は *[setdata](#setdata)* による ``data-`` への書き込みが行なわれません。
+### data-clock-disabled-tack
+　論理属性で、この属性が指定された要素は *[tack](#tack)* および *[data-clock-tack](#data-clock-tack)* による [CSS 変数](https://developer.mozilla.org/ja/docs/Web/CSS/--*)の作成が行なわれません。
 ### data-clock-mute
 　論理属性で、この属性が指定された要素は該当する日時が更新されてもその値をテキストとして書き込みする処理が行なわれません。
 ### data-clock-pad
@@ -146,6 +148,8 @@
 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[pad-pseudo](#pad-pseudo)* と同等ですが、この属性に指定された値は *[\<super-clock\>](#super-clock-日時更新要素)* の指定を上書きし、また該当要素に対してのみ適用されます。
 ### data-clock-pad-str
 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[pad-str](#pad-str)* と同等ですが、この属性に指定された値は *[\<super-clock\>](#super-clock-日時更新要素)* の指定を上書きし、また該当要素に対してのみ適用されます。
+### data-clock-tack
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[tack](#tack)* と同等ですが、この属性に指定された値は *[\<super-clock\>](#super-clock-日時更新要素)* の指定を上書きし、また該当要素に対してのみ適用されます。
 ### data-clock-value
 　論理属性で、指定されていると、更新された値がこのカスタムデータ属性にも設定されます。
 ### data-clock-values
@@ -212,6 +216,43 @@
 				<span data-clock="h"></span>:<span data-clock="mi"></span>:<span data-clock="s"></span>
 			</div>
 		</super-clock>
+		
+	</body>
+</html>
+```
+## 非破壊更新
+　通常、日時の値は [Node.textContent](https://developer.mozilla.org/ja/docs/Web/API/Node/textContent) を通じて直接該当する子孫要素に書き込まれますが、その場合、その要素の内容は、更新時にすべて失われてしまいます。しかし、以下の作例のように *[mute](#mute)*, *[setdata](#setdata)* を同時に指定することで、要素の内容を失わずに日時の値を更新および表示することができるようになります。同様に、対象の子孫要素に *[data-clock-mute](#data-clock-mute)*, *[data-clock-value](#data-clock-value)* を同時に設定することで個別にこの動作を設定することもできます。
+
+　一方で、この方法はアクセシビリティの観点からも必ずしも正当とは言えません。第一に、 *[setdata](#setdata)* を通じて表示された値は、ウェブページ上で選択やコピーなどの編集操作を行なえません。そして、インライン要素に *[data-clock](#data-clock)* を指定すれば、テキスト内に独立して日時を埋め込むことは常にできるためです。これらは、HTML の論理構造を明確にすると言う点でも考慮に値すると言えます。
+```HTML
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<meta charset="utf-8">
+		<title>非破壊更新 - SuperClock</title>
+		<script src="super-clock.js"></script>
+		<style>
+			[data-clock] {
+				display: flex;
+			}
+			[data-clock] > :first-child {
+				order: 1;
+			}
+			[data-clock]::before {
+				content: attr(data-clock-value);
+				order: 2;
+			}
+			[data-clock] > :last-child {
+				order: 3;
+			}
+		</style>
+	</head>
+	<body>
+		
+		<super-clock auto mute setdata><div data-clock><span>1970年1月1日から</span><span>ミリ秒経過中</span></div></super-clock>
+		
+		<!-- 比較用。data-clock が設定された div は内容を持つが、ページを読み込むと、上記と異なり、日時パラメータの t の値しか表示されない。 -->
+		<super-clock auto><div data-clock><span>1970年1月1日から</span><span>ミリ秒経過中</span></div></super-clock>
 		
 	</body>
 </html>
