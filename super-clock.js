@@ -1,5 +1,3 @@
-// todo css 変数関連の処理の可否を設定する属性の作成
-
 class SuperClock extends HTMLElement {
 	
 	static getValues(id, defaultValue = []) {
