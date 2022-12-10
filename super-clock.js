@@ -86,7 +86,7 @@ class SuperClock extends HTMLElement {
 		
 		const	{ pad, padPseudo, padStr, tackName, value } = this,
 				{ dataset } = element,
-				padRaw = 'clockPad' in element.dataset ? +element.dataset.clockPad|0 : NaN;
+				padRaw = 'clockPad' in element.dataset ? parseInt(element.dataset.clockPad) : NaN;
 		
 		return	{
 						asHTML: 'clockAsHTML' in dataset,
@@ -117,8 +117,8 @@ class SuperClock extends HTMLElement {
 			break;
 			
 			case 'm':
-			const m = now.getMonth(), nm = m === 11 ? 0 : m + 1;
-			from = [ now.getFullYear() + !nm,nm,1,0,0,0,0 ], i0 = (i = nm ? m : 0) + 1;
+			const m = i = now.getMonth(), nm = m === 11 ? 0 : m + 1;
+			from = [ now.getFullYear() + !nm,nm,1,0,0,0,0 ], i0 = m + 1;
 			break;
 			
 			case 'd':
@@ -162,7 +162,7 @@ class SuperClock extends HTMLElement {
 			break;
 			
 			case 'hn':
-			i = (v0 = now.getHours()) / 12|0, vk = 'vHN',
+			i = parseInt((v0 = now.getHours()) / 12), vk = 'vHN',
 			from = [
 				new Date(
 					now.getFullYear(),now.getMonth(),now.getDate(),
@@ -181,7 +181,7 @@ class SuperClock extends HTMLElement {
 		
 		if (pad && padPseudo && padStr) {
 			
-			const l = (''+v).length, cnt = l < padAbs ? ((padAbs - l) / padStr.length |0) + 1 : 0,
+			const l = (''+v).length, cnt = l < padAbs ? parseInt((padAbs - l) / padStr.length) + 1 : 0,
 					padded = cnt && padStr.repeat(cnt);
 			
 			clock.dataset.clockPadAttr = cnt ? pad < 0 ? padded.slice(pad + l) : padded.slice(0, pad - l) : '';
@@ -233,7 +233,14 @@ class SuperClock extends HTMLElement {
 		
 		const origin = this.getAttribute('origin')?.trim?.() ?? '';
 		
-		return origin ? origin[0] === '+' ? origin.slice(1)|0 : origin[0] === '-' ? -origin.slice(1)|0 : origin : origin;
+		// 以下のようにビット演算子で値を整数に変換すると、値が符号付き 32 ビットの範囲(-2147483648 から 2147483647) を超えると
+		// ビット演算子の仕様に基づき正負が反転する。（例: 2147483648|0) そのため parseInt を用いて変換するように改修。
+		//return origin ? origin[0] === '+' ? origin.slice(1)|0 : origin[0] === '-' ? -origin.slice(1)|0 : origin : origin;
+		
+		return	origin ?
+						origin[0] === '+' ? parseInt(origin.slice(1)) :
+							origin[0] === '-' ? -parseInt(origin.slice(1)) : origin :
+						origin;
 		
 	}
 	
@@ -270,16 +277,16 @@ class SuperClock extends HTMLElement {
 	get origin() {
 		
 		const	{ from = 0 } = this, diff = this.getDiff(),
-				origin = typeof diff === 'number' ? from + diff : diff ? new Date(diff|0)?.getTime?.() : from;
+				origin = typeof diff === 'number' ? from + diff : diff ? new Date(parseInt(diff))?.getTime?.() : from;
 		
-		return this.floor ? (origin / 1000|0) * 1000 : origin;
+		return this.floor ? parseInt(origin / 1000) * 1000 : origin;
 		
 	}
 	set origin(v) { this.setAttribute('origin', v); }
 	
 	get pad() {
 		
-		const v = +this.getAttribute('pad')|0;
+		const v = parseInt(this.getAttribute('pad'));
 		
 		return Number.isNaN(v) ? SuperClock.PAD : v;
 		
@@ -305,7 +312,7 @@ class SuperClock extends HTMLElement {
 	
 	get timing() {
 		
-		const v = Math.abs(+this.getAttribute('timing')|0);
+		const v = Math.abs(parseInt(this.getAttribute('timing')));
 		
 		return Number.isNaN(v) || !v ? SuperClock.TIMING : v;
 		
