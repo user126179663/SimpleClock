@@ -1,5 +1,22 @@
 class SuperClock extends HTMLElement {
 	
+	static {
+		
+		this.PAD = 0,
+		this.PADSTR = '0',
+		this.SETDATA = 'clock-value',
+		this.SPEED = 1,
+		this.TACK = 'tack',
+		this.TIMING = 67,
+		this.VALUE = 't',
+		
+		this.dn = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ],
+		this.hn = [ 'AM', 'PM' ],
+		
+		this.updated = Symbol('SuperClock.updated');
+		
+	}
+	
 	static getValues(id, defaultValue = []) {
 		
 		return document.getElementById(id)?.valueOf?.() ?? defaultValue;
@@ -41,20 +58,82 @@ class SuperClock extends HTMLElement {
 		
 	}
 	
-	static {
+	static getStaticDate(source, timeZone) {
 		
-		this.PAD = 0,
-		this.PADSTR = '0',
-		this.SETDATA = 'clock-value',
-		this.SPEED = 1,
-		this.TACK = 'tack',
-		this.TIMING = 67,
-		this.VALUE = 't',
+		source instanceof Date || (source = new Date(source));
 		
-		this.dn = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ],
-		this.hn = [ 'AM', 'PM' ],
+		const	{ getDateValue } = SuperClock,
+				hours = getDateValue(source, 'hours', timeZone);
 		
-		this.updated = Symbol('SuperClock.updated');
+		return {
+				
+				source,
+				
+				year: getDateValue(source, 'fullYear', timeZone),
+				month: getDateValue(source, 'month', timeZone),
+				day: getDateValue(source, 'date', timeZone),
+				hours,
+				mins: getDateValue(source, 'minutes', timeZone),
+				secs: getDateValue(source, 'seconds', timeZone),
+				msecs: getDateValue(source, 'milliseconds', timeZone),
+				time: source.getTime()
+				
+			};
+			
+	}
+	static getElapse(to = 0, from = new Date(), timeZone) {
+		
+		const { getElapse, getStaticDate } = SuperClock;
+		
+		if ((to = getStaticDate(to, timeZone)).time > (from = getStaticDate(from, timeZone)).time) {
+			
+			const elapsed = getElapse(from.source, to.source, timeZone);
+			let k;
+			
+			for (k in elapsed) typeof elapsed[k] === 'number' && (elapsed[k] = -elapsed[k]);
+			
+			return elapsed;
+			
+		}
+		
+		const monthly = [], elapsed = { years: 0, monthly };
+		let i, daysCount, mo,months, isLeap, y;
+		
+		i = months = -1,
+		daysCount = elapsed.d = ((elapsed.time = from.time - to.time) / 1000 | 0) / 86400 | 0,
+		mo = from.month + 1, isLeap = !((y = from.year) % 4 || !(y % 100) && y % 400), ++to.month;
+		while ((daysCount -= monthly[i] ?? 0) >= 0) {
+			
+			monthly[++i] =
+				--mo === 1 ? isLeap ? 29 : 28 : mo === 3 || mo === 5 || mo === 8 || mo === 10 ? 30 : 31,
+			
+			mo ||= 12,
+			
+			++months === 12 && (++elapsed.years, months = 0, isLeap = !(--y % 4 || !(y % 100) && y % 400));
+			
+		}
+		
+		elapsed.days = (elapsed.months = (elapsed.years ||= null) === null && !months ? null : months) === null && !(monthly[i] += daysCount) ? null : monthly[i],
+		
+		elapsed.hours = from.hours < to.hours ? (24 - to.hours) + from.hours : from.hours - to.hours,
+		elapsed.mins =
+			from.mins < to.mins ? (--elapsed.hours, (60 - to.mins) + from.mins) : from.mins - to.mins,
+		elapsed.secs =
+			from.secs < to.secs ? (--elapsed.mins, (60 - to.secs) + from.secs) : from.secs - to.secs,
+		elapsed.msecs =
+			from.msecs < to.msecs ? (--elapsed.secs, (1000 - to.msecs) + from.msecs) : from.msecs - to.msecs,
+		
+		elapsed.days === null && !elapsed.hours &&
+			(elapsed.hours = null, elapsed.mins || (elapsed.mins = null, elapsed.secs ||
+				(elapsed.secs = null, elapsed.msecs || (elapsed.msecs = null)))),
+		
+		elapsed.m = (((elapsed.y = elapsed.years) || 0) * 12 + elapsed.months) || null,
+		elapsed.h = (((elapsed.d ||= null) || 0) * 24 + elapsed.hours) || null,
+		elapsed.mi = ((elapsed.h || 0) * 60 + elapsed.mins) || null,
+		elapsed.s = ((elapsed.mi || 0) * 60 + elapsed.secs) || null,
+		elapsed.ms = ((elapsed.s || 0) * 1000 + elapsed.msecs) || null;
+		
+		return elapsed;
 		
 	}
 	
@@ -90,20 +169,23 @@ class SuperClock extends HTMLElement {
 	
 	fetchClockData(element) {
 		
-		const	{ adjacent, pad, padPseudo, padStr, tackName, timeZone, value } = this,
+		const	{ isNaN } = Number,
+				{ pad, padPseudo, padStr, since, tackName, timeZone, value } = this,
 				{ dataset } = element,
-				padRaw = 'clockPad' in element.dataset ? parseInt(element.dataset.clockPad) : NaN;
+				padRaw = 'clockPad' in dataset ? parseInt(dataset.clockPad) : NaN,
+				sinceRaw = 'clockSince' in dataset ? parseInt(dataset.clockSince) : NaN;
 		
 		return	{
 						asHTML: 'clockAsHTML' in dataset,
 						forceText: 'clockForceText' in dataset,
-						pad: Number.isNaN(padRaw) ? pad : padRaw,
+						pad: isNaN(padRaw) ? pad : padRaw,
 						padPseudo: 'clockPadPseudo' in dataset || !!('clockDisabledPadPseudo' in dataset) || padPseudo,
 						padStr: 'clockPadStr' in dataset ? dataset.clockPadStr : padStr,
+						since: isNaN(sinceRaw) ? sinceRaw : since,
 						tack: 'clockTack' in dataset ? dataset.clockTack : tackName,
 						timeZone: 'clockTimeZone' in dataset || timeZone,
 						value: 'clock' in dataset ? dataset.clock : value,
-						values: 'clockValues' in dataset ? SuperClock.getValues(dataset.clockValues) : []
+						values: 'clockValues' in dataset ? SuperClock.getValues(dataset.clockValues) : undefined
 					};
 		
 	}
@@ -112,16 +194,21 @@ class SuperClock extends HTMLElement {
 		
 		if (!(clock instanceof HTMLElement)) return;
 		
-		const	{ getDateValue } = SuperClock,
+		const	{ getDateValue, getElapse } = SuperClock,
 				{ now } = this,
-				{ asHTML, forceText, pad, padPseudo, padStr, tack, timeZone, value, values } = this.fetchClockData(clock),
+				{ asHTML, forceText, pad, padPseudo, padStr, since, tack, timeZone, value, values } =
+					this.fetchClockData(clock),
+				accumulates = value[0] === '-',
 				padAbs = Math.abs(pad);
-		let i,i0,v,v0, from, remained,value0,vk;
+		let i,i0,v,v0, from,from0, remained,value0,vk;
 		
-		switch (value0 = value?.toLowerCase?.()) {
+		
+		
+		switch (value0 = (accumulates ? value.slice(1) : value)?.toLowerCase?.()) {
 			
 			case 'y':
 			i = getDateValue(now, 'fullYear', timeZone),
+			accumulates && (from0 = [ i,0,1, 0,0,0,0 ]),
 			from = [ now.getFullYear() + 1,0,1, 0,0,0,0 ];
 			break;
 			
@@ -129,19 +216,21 @@ class SuperClock extends HTMLElement {
 			const m = now.getMonth(), nm = m === 11 ? 0 : m + 1;
 			i = getDateValue(now, 'month', timeZone),
 			i0 = m + 1,
+			accumulates && (from0 = [ getDateValue(now, 'fullYear', timeZone),i,1,0,0,0,0 ]),
 			from = [ now.getFullYear() + !nm,nm,1,0,0,0,0 ];
 			break;
 			
 			case 'd':
 			i = getDateValue(now, 'date', timeZone),
 			from = [
-				new Date(
+				(from0 = new Date(
 					now.getFullYear(),
 					now.getMonth(),
 					now.getDate(),
 					0,0,0,0
-				).getTime() + 86400000
-			];
+				).getTime()) + 86400000
+			],
+			accumulates && (from0 = [ from0 - now.getTimezoneOffset() * 60000 ]);
 			break;
 			
 			case 'h':
@@ -149,34 +238,36 @@ class SuperClock extends HTMLElement {
 			case 'h12':
 			i ?? ((i = getDateValue(now, 'hours', timeZone)) > 11 && (i -= 12)),
 			from = [
-				new Date(
+				(from0 = new Date(
 					now.getFullYear(),
 					now.getMonth(),
 					now.getDate(),
 					now.getHours(),
 					0,0,0
-				).getTime() + 3600000
-			];
+				).getTime()) + 3600000
+			],
+			accumulates && (from0 = [ from0 - now.getTimezoneOffset() * 60000 ]);
 			break;
 			
 			case 'mi':
 			i = getDateValue(now, 'minutes', timeZone),
 			from = [
-				new Date(
+				(from0 = new Date(
 					now.getFullYear(),
 					now.getMonth(),
 					now.getDate(),
 					now.getHours(),
 					now.getMinutes(),
 					0,0
-				).getTime() + 60000
-			];
+				).getTime()) + 60000
+			],
+			accumulates && (from0 = [ from0 - now.getTimezoneOffset() * 60000 ]);
 			break;
 			
 			case 's':
 			i = getDateValue(now, 'seconds', timeZone),
 			from = [
-				new Date(
+				(from0 = new Date(
 					now.getFullYear(),
 					now.getMonth(),
 					now.getDate(),
@@ -184,12 +275,14 @@ class SuperClock extends HTMLElement {
 					now.getMinutes(),
 					now.getSeconds(),
 					0
-				).getTime() + 1000
-			];
+				).getTime()) + 1000
+			],
+			accumulates && (from0 = [ from0 - now.getTimezoneOffset() * 60000 ]);
 			break;
 			
 			case 'ms':
-			from = [ (i = now.getTime()) + 1 ];
+			from = [ (i = now.getTime()) + 1 ],
+			accumulates && (from0 = [ i ]);
 			break;
 			
 			case 'dn':
@@ -219,11 +312,17 @@ class SuperClock extends HTMLElement {
 			break;
 			
 			default:
-			value0 = 't', from = [ (i = now.getTime()) + 1 ];
+			value0 = 't', from = [ (i = now.getTime()) + 1 ], accumulates && (from0 = [ i ]);
 			
 		}
 		
-		v = values[i] ?? this[vk ||= 'v' + value0[0].toUpperCase() + value0.slice(1)][i] ?? i0 ?? i;
+		v =	accumulates ?
+					(hi(typeof since),getElapse(Number.isNaN(since) ? undefined : since, new Date(...from).getTime(), timeZone)[value0] ?? 0) :
+					values?.[i] ?? this[vk ||= 'v' + value0[0].toUpperCase() + value0.slice(1)][i] ?? i0 ?? i;
+		
+		//value === '-d' && hi(value, from, getElapse(undefined, new Date(...from0).getTime(), timeZone)[value0]);
+		
+		//v = values?.[i] ?? this[vk ||= 'v' + value0[0].toUpperCase() + value0.slice(1)][i] ?? i0 ?? i;
 		
 		if (pad && padPseudo && padStr) {
 			
@@ -349,6 +448,15 @@ class SuperClock extends HTMLElement {
 	
 	get setdata() { return this.getAttribute('setdata') || SuperClock.SETDATA; }
 	set setdata(v) { this.setAttribute('setdata', v); }
+	
+	get since() {
+		
+		const v = parseInt(this.getAttribute('since'));
+		
+		return Number.isNaN(v) ? v : new Date(v);
+		
+	}
+	set since(v) { this.setAttribute('since', v); }
 	
 	get speed() {
 		const v = this.getAttribute('speed') || SuperClock.SPEED, v0 = +v;

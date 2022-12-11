@@ -36,8 +36,10 @@
 　日時を示す文字列の文字数が属性 *[pad](#pad)* で指定された値に満たない場合、この属性に指定された値で不足を補います。既定値は文字列の ``0`` です。
 ### setdata
 　指定されていると、その値を子孫要素の[カスタムデータ属性](https://developer.mozilla.org/ja/docs/Web/HTML/Global_attributes/data-\*)の名前として、更新された時間をその値に設定します。値が未指定か、空文字を指定すると、``data-clock-value`` に更新された値が指定されます。
+### since*
+　子孫要素のカスタムデータ属性 *[data-clock](#data-clock)* の値に接頭辞 ``-`` がある時に、この属性に指定した値を *[origin](#origin)* が示す日時からの経過時間の開始日時とします。値は[UNIX 元期](https://ja.wikipedia.org/wiki/UNIX%E6%99%82%E9%96%93)のミリ秒で指定します。既定値は ``0`` です。
 ### speed*
-　時間の進む速さを設定します。具体的には、属性 *[timing](timing)* で指定された値にこの属性に指定された値を乗算します。
+　時間の進む速さを設定します。具体的には、属性 *[timing](#timing)* で指定された値にこの属性に指定された値を乗算します。
 ### tack
 　論理属性で、指定されていると以下の [CSS 変数](https://developer.mozilla.org/ja/docs/Web/CSS/--*)を設定します。値を指定すると、以下の変数名やクラス名の ```tack``` を、その値で置き換えます。
 > #### --clock-tack-time
@@ -116,6 +118,20 @@
 ### data-clock
 　要素が *[\<super-clock\>](#super-clock-日時更新要素)* によって日時のどの部分として認識されるかを以下のパラメータ名によって示します。既定値は ``t`` です。 *[\<super-clock\>](#super-clock-日時更新要素)* は、この属性が指定された子孫要素のみを処理の対象とします。
 > #### 日時のパラメータ名
+> ##### -y
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過年数を示します。
+> ##### -m
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過月数を示します。
+> ##### -d
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過日数を示します。
+> ##### -h
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過時間を示します。
+> ##### -mi
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過分数を示します。
+> ##### -s
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過秒数を示します。
+> ##### -ms
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過ミリ秒数を示します。
 > ##### y
 > 　西暦の「年」を示します。
 > ##### m
@@ -139,7 +155,7 @@
 > ##### t
 > 　UNIX 元期の時間を示します。
 ### data-clock-as-html
-　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[as-html](#as-html)* と同等ですが、 *[\<super-clock\>](#super-clock-日時更新要素)* の該当要素に対する指定をこの属性に指定された値で上書きます。
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[as-html](#as-html)* と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。
 ### data-clock-force-text
 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[as-html](#as-html)* と、この要素の *[data-clock-as-html](#data-clock-as-html)* の指定にかかわらず、 *[\<super-clock\>](#super-clock-日時更新要素)* によってこの要素の内容として書き込まれる値をプレーンテキストとして扱うことを強制します。
 ### data-clock-disabled-setdata
@@ -149,19 +165,21 @@
 ### data-clock-mute
 　論理属性で、この属性が指定された要素は該当する日時が更新されてもその値をテキストとして書き込みする処理が行なわれません。
 ### data-clock-pad
-　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[pad](#pad)* と同等ですが、 *[\<super-clock\>](#super-clock-日時更新要素)* の該当要素に対する指定をこの属性に指定された値で上書きます。
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[pad](#pad)* と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。
 ### data-clock-pad-pseudo
-　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[pad-pseudo](#pad-pseudo)* と同等ですが、 *[\<super-clock\>](#super-clock-日時更新要素)* の該当要素に対する指定をこの属性に指定された値で上書きます。
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[pad-pseudo](#pad-pseudo)* と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。
 ### data-clock-pad-str
-　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[pad-str](#pad-str)* と同等ですが、 *[\<super-clock\>](#super-clock-日時更新要素)* の該当要素に対する指定をこの属性に指定された値で上書きます。
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[pad-str](#pad-str)* と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。
+### data-clock-since
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。
 ### data-clock-tack
-　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[tack](#tack)* と同等ですが、 *[\<super-clock\>](#super-clock-日時更新要素)* の該当要素に対する指定をこの属性に指定された値で上書きます。
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[tack](#tack)* と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。
 ### data-clock-time-zone
-　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[time-zone](#time-zone)* と同等ですが、 *[\<super-clock\>](#super-clock-日時更新要素)* の該当要素に対する指定をこの属性に指定された値で上書きます。
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[time-zone](#time-zone)* と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。
 ### data-clock-value
 　論理属性で、指定されていると、更新された値がこのカスタムデータ属性にも設定されます。
 ### data-clock-values
-　指定された値と一致する属性 [id](https://developer.mozilla.org/ja/docs/Web/HTML/Global_attributes/id) を持つ *[\<enum-values\>](#enum-values-値列挙要素)* の値で、 *[data-clock](#data-clock)* に指定された日時の値を置き換えます。 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 ```v-*``` と同等ですが、 *[\<super-clock\>](#super-clock-日時更新要素)* の該当要素に対する指定をこの属性に指定された値で上書きます。現在の日時の値は *[\<enum-values\>](#enum-values-値列挙要素)* 内の子要素 *[\<enum-value\>](#enum-value-列挙値要素)* の位置か、属性 *[key](#key)* の値と対応します。位置は、最初の子要素を ``0`` とします。
+　指定された値と一致する属性 [id](https://developer.mozilla.org/ja/docs/Web/HTML/Global_attributes/id) を持つ *[\<enum-values\>](#enum-values-値列挙要素)* の値で、 *[data-clock](#data-clock)* に指定された日時の値を置き換えます。 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 ```v-*``` と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。現在の日時の値は *[\<enum-values\>](#enum-values-値列挙要素)* 内の子要素 *[\<enum-value\>](#enum-value-列挙値要素)* の位置か、属性 *[key](#key)* の値と対応します。位置は、最初の子要素を ``0`` とします。
 ```HTML
 <!--
 	以下の時、data-clock を持つ要素の日時値は 1 であるため、この 1 は、
@@ -265,7 +283,7 @@
 	</body>
 </html>
 ```
-### 擬似的な経過時間の計測
+## 擬似的な経過時間の計測
 　*[origin](#origin)* に ``0`` を指定し、 *[time-zone](#time-zone)* を指定すると、経過時間を計測する時計を作れます。ただしこれは擬似的な計測で、実際には[協定世界時](https://ja.wikipedia.org/wiki/%E5%8D%94%E5%AE%9A%E4%B8%96%E7%95%8C%E6%99%82)における[UNIX 元期](https://ja.wikipedia.org/wiki/UNIX%E6%99%82%E9%96%93)(1970年1月1日0時0分0.0秒)からの経過時間です。
 
 　JavaScript の経験者であれば、この設定を応用して簡易のストップウォッチを作ることを発想をするかもしれませんが、この要素は自身の時間を現在時刻と非同期に進行させる力はありません。例えば開始から 15 秒後にいったん計測を停止し、3 秒後に計測を再開した時に表示される時間は 15 秒ではなく 18 秒になります。
@@ -281,6 +299,32 @@
 		
 		<super-clock pad="2" origin="0" time-zone auto>
 			<span data-clock="h"></span>:<span data-clock="mi"></span>:<span data-clock="s"></span>
+		</super-clock>
+		
+	</body>
+</html>
+```
+
+　特定の日時からの経過日数を表示する場合は、属性 *[since](#since)* に [UNIX 元期](https://ja.wikipedia.org/wiki/UNIX%E6%99%82%E9%96%93)でミリ秒に変換した特定の日時を指定し、子孫要素のカスタムデータ属性 *[data-clock](#data-clock)* に接頭辞 ``-`` が付いたいずれかの値を指定します。例えば特定の日時からの経過日数を表示したい場合は ``data-clock="-d"`` を指定します。
+
+　これを使えば、例えばゲーム配信を始めてから何日目、あるいは何時間目と言ったことを画面に表示することができるでしょう。そのためには、もちろんその記念となる日時の記録が別に必要になります。また、この処理は通常の日時更新処理に対して相対的に高コストである点は留意すべきかもしれません。
+```HTML
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<meta charset="utf-8">
+		<title>特定の日時からの経過時間- SuperClock</title>
+		<script src="super-clock.js"></script>
+	</head>
+	<body>
+		
+		<super-clock since="0" auto>
+			1970年1月1日0時0分0秒から <span data-clock="-y"></span> 年経過中<br>
+			1970年1月1日0時0分0秒から <span data-clock="-m"></span> ヶ月経過中<br>
+			1970年1月1日0時0分0秒から <span data-clock="-d"></span> 日経過中<br>
+			1970年1月1日0時0分0秒から <span data-clock="-h"></span> 時間経過中<br>
+			1970年1月1日0時0分0秒から <span data-clock="-mi"></span> 分経過中<br>
+			1970年1月1日0時0分0秒から <span data-clock="-s"></span> 秒経過中
 		</super-clock>
 		
 	</body>
