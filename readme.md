@@ -119,19 +119,19 @@
 　要素が *[\<super-clock\>](#super-clock-日時更新要素)* によって日時のどの部分として認識されるかを以下のパラメータ名によって示します。既定値は ``t`` です。 *[\<super-clock\>](#super-clock-日時更新要素)* は、この属性が指定された子孫要素のみを処理の対象とします。
 > #### 日時のパラメータ名
 > ##### -y
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過年数を示します。
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過年数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-y](#v-y)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
 > ##### -m
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過月数を示します。
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過月数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-m](#v-m)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
 > ##### -d
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過日数を示します。
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過日数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-d](#v-d)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
 > ##### -h
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過時間を示します。
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過時間を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-h](#v-h)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
 > ##### -mi
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過分数を示します。
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過分数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-mi](#v-mi)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
 > ##### -s
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過秒数を示します。
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過秒数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-s](#v-s)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
 > ##### -ms
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過ミリ秒数を示します。
+> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過ミリ秒数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-ms](#v-ms)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
 > ##### y
 > 　西暦の「年」を示します。
 > ##### m

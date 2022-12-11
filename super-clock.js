@@ -181,7 +181,7 @@ class SuperClock extends HTMLElement {
 						pad: isNaN(padRaw) ? pad : padRaw,
 						padPseudo: 'clockPadPseudo' in dataset || !!('clockDisabledPadPseudo' in dataset) || padPseudo,
 						padStr: 'clockPadStr' in dataset ? dataset.clockPadStr : padStr,
-						since: isNaN(sinceRaw) ? sinceRaw : since,
+						since: isNaN(sinceRaw) ? since : sinceRaw,
 						tack: 'clockTack' in dataset ? dataset.clockTack : tackName,
 						timeZone: 'clockTimeZone' in dataset || timeZone,
 						value: 'clock' in dataset ? dataset.clock : value,
@@ -317,7 +317,7 @@ class SuperClock extends HTMLElement {
 		}
 		
 		v =	accumulates ?
-					(hi(typeof since),getElapse(Number.isNaN(since) ? undefined : since, new Date(...from).getTime(), timeZone)[value0] ?? 0) :
+					getElapse(Number.isNaN(since) ? undefined : since, new Date(...from).getTime(), timeZone)[value0] ?? 0 :
 					values?.[i] ?? this[vk ||= 'v' + value0[0].toUpperCase() + value0.slice(1)][i] ?? i0 ?? i;
 		
 		//value === '-d' && hi(value, from, getElapse(undefined, new Date(...from0).getTime(), timeZone)[value0]);
