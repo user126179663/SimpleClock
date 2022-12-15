@@ -24,47 +24,53 @@
 　論理属性で、指定されていると要素がドキュメントに接続された時に自動的に時間の更新を開始します。JavaScript を通じて操作を行なわない場合、あらかじめこの属性を指定しておく以外で時間の更新を開始させる方法はありません。
 ### floor
 　論理属性で、指定されていると開始時間のミリ秒を ``0`` に切り下げます。
+### invert
+　論理属性で、指定されていると日時を示す文字列が数値の場合、それが正の数の場合は負の数にし、負の数の場合は正の数にします。日時が負の数になるのは *[since](#since)* を *[origin](#)* より未来の時刻に設定した上で、子孫要素の *[data-clock](#data-clock)* に ``-`` を接頭辞とした *[日時のパラメータ名](#日時のパラメータ名)* を指定した場合です。
 ### mute
 　論理属性で、指定されていると時間の更新を行なっていても、子孫要素内のテキストの設定および更新は行ないません。
 ### origin*
 　日時の開始時間を任意の [UNIX 元期](https://ja.wikipedia.org/wiki/UNIX%E6%99%82%E9%96%93)の時間(ミリ秒単位)で指定します。接頭辞に ``+`` と ``-`` があり、``+`` を付けると、それに続くミリ秒単位の時間分、現在時刻を進ませた値を開始時間に設定します。``-`` の場合は、逆に現在時刻から指定された値分遡らせます。既定値は現在時刻です。
 ### pad
-　日時を示す文字列の文字数の上限を整数で指定します。文字数が上限に満たない場合、属性 *[pad-str](#pad-str)* で指定された文字列で補います。既定では不足する文字数分は左方向に対して補われますが、負の整数を指定した場合は右方向へ補われます。
+　日時を示す文字列の文字数の上限を整数で指定します。文字数が上限に満たない場合、属性 *[pad-str](#pad-str)* で指定された文字列で補います。既定では不足する文字数分は左方向に対して補われますが、負の整数を指定した場合は右方向へ補われます。既定値は ``0`` です。 ``0`` の場合、更新された日時がそのまま表示されます。
+
+　日時を示す文字列が負の数を示す場合、符号 ``-`` は文字数としてカウントされません。例えば ``data-clock="ms" pad="3"`` の時に、更新された値が ``-100`` ``-10`` ``-1`` ``1`` の時は、表示される値は ``-100`` ``-010`` ``-001`` ``001`` になります。日時が負の数になるのは *[since](#since)* を *[origin](#)* より未来の時刻に設定した上で、子孫要素の *[data-clock](#data-clock)* に ``-`` を接頭辞とした *[日時のパラメータ名](#日時のパラメータ名)* を指定した場合です。
 ### pad-pseudo
 　論理属性で、指定されていると、属性 *[pad](#pad)*, *[pad-str](#pad-str)* によって補われた文字列（日時部分は含まない）を、子孫要素内にテキストとして直接埋め込むのではなく、該当子孫要素の属性 ``data-clock-pad-attr`` の値として設定します。この値は、通常 CSS 関数 [attr()](https://developer.mozilla.org/ja/docs/Web/CSS/attr) を通じて要素内の擬似要素 [::before](https://developer.mozilla.org/ja/docs/Web/CSS/::before) および [::after](https://developer.mozilla.org/ja/docs/Web/CSS/::after) に表示することができます。
 ### pad-str
 　日時を示す文字列の文字数が属性 *[pad](#pad)* で指定された値に満たない場合、この属性に指定された値で不足を補います。既定値は文字列の ``0`` です。
+### pause
+　論理属性で、指定されていると日時を示す値が数値の場合、その値が ``0`` をまたいだ時、例えば負の数から始まって ``0`` に達した時に見かけ上の日時の更新を停止します（内部での更新処理そのものは止まりません）。任意の文字列を指定すると、停止した時に表示する値をその文字列で置き換えます。これは特に子孫要素に *[日時のパラメータ名](#日時のパラメータ名)* ``-ms`` を指定して、表示を ``0`` ミリ秒として止めたい時に有効です。大抵の場合、その指定状況では ``0`` のわずか手前（``967`` や``-34`` など）で表示が止まるためです。日時が負の数になるのは *[since](#since)* を *[origin](#)* より未来の時刻に設定した上で、子孫要素の *[data-clock](#data-clock)* に ``-`` を接頭辞とした *[日時のパラメータ名](#日時のパラメータ名)* を指定した場合です。
 ### setdata
-　指定されていると、その値を子孫要素の[カスタムデータ属性](https://developer.mozilla.org/ja/docs/Web/HTML/Global_attributes/data-\*)の名前として、更新された時間をその値に設定します。値が未指定か、空文字を指定すると、``data-clock-value`` に更新された値が指定されます。
+　指定されていると、その値を子孫要素の *[data-clock](#data-clock)* の名前として、更新された時間をその値に設定します。値が未指定か、空文字を指定すると、``data-clock-value`` に更新された値が指定されます。
 ### since*
-　子孫要素のカスタムデータ属性 *[data-clock](#data-clock)* の値に接頭辞 ``-`` がある時に、この属性に指定した値を *[origin](#origin)* が示す日時からの経過時間の開始日時とします。値は[UNIX 元期](https://ja.wikipedia.org/wiki/UNIX%E6%99%82%E9%96%93)のミリ秒で指定します。既定値は ``0`` です。
+　子孫要素のカスタムデータ属性 *[data-clock](#data-clock)* の値に接頭辞 ``-`` がある時に、この属性に指定した値を *[origin](#origin)* が示す日時からの経過時間の開始日時とします。値は [origin](#origin) と同じ指定方法が使えます。既定値は ``0`` です。
 ### speed*
 　時間の進む速さを設定します。具体的には、属性 *[timing](#timing)* で指定された値にこの属性に指定された値を乗算します。
 ### tack
-　論理属性で、指定されていると以下の [CSS 変数](https://developer.mozilla.org/ja/docs/Web/CSS/--*)を設定します。値を指定すると、以下の変数名やクラス名の ```tack``` を、その値で置き換えます。
-> #### --clock-tack-time
-> 　属性 *[data-clock](#data-clock)* を指定された子孫要素に設定され、その属性が示す日時の値が次の値に切り替わるまでにかかる時間を CSS のデータ型 [\<time\>](https://developer.mozilla.org/ja/docs/Web/CSS/time) で示します。単位は ``ms`` です。例えば、``data-clock="s"`` である場合、``--clock-tack-time`` の値は概ね ``1s`` に近い値を示します。
-> 
-> 　この CSS 変数が必要な理由は、日時の値が切り替わる時に、切り替わりに掛かる時間が常に一定とは限らないためです。例えば秒数に応じて要素をアニメーションさせたい時、``animation: keyframes 1s linear 0s infinite...`` とすれば一秒毎にアニメーションが再生されますが、仮に時計の開始時間が 19:30 2.5 である場合、秒が次の値に切り替わる時間は 0.5 秒であるため、19:30 3.0 になっても、アニメーションが再生されるのはその 0.5 秒後になります。これはミリ秒や秒であれば無視できる差かもしれませんが、それ以外では決定的な差を生じさせます。時計の開始時間が 19:30 30.0 で、アニメーションの指定が ``animation: keyframes 60s linear 0s infinite...`` であれば、実際に分が切り替わってから 30 秒もあとにアニメーションが再生されることになります。この時、``--clock-tack-time`` には、``30s`` に近い値が設定され、その後、19:31 0.0 に切り替わった際は、``--clock-tack-time`` には ``60s`` に近い値が改めて設定されます。
-> 
-> 　この CSS 変数を CSS プロパティ [animation-iteration-count](https://developer.mozilla.org/ja/docs/Web/CSS/animation-iteration-count) の値を ```infinite``` に設定した上で [animation-duration](https://developer.mozilla.org/ja/docs/Web/CSS/animation-duration) に指定することは推奨されません。再生中のアニメーションは、プロパティに指定された CSS 変数の変化を反映しないためです。属性 *[tack](#tack)* が指定されていると、この CSS 変数を設定すると同時に、日時の値が切り替わった時に、該当の子孫要素のクラス名に ``tack`` を追加します。これは切り替わる度に追加操作が行なわれ、その際に要素に設定されたアニメーションを、その再生状態を問わずに初期化します。この動作に基づいて、以下の例のように指定すると、値の切り替わりと同時に要素を繰り返しアニメーションさせられます。
-> ```CSS
-> .tack {
-> 	animation: tack var(--clock-tack-time) linear 0s 1 normal forwards running;
-> }
-> @keyframes tack {
-> 	from { opacity: 1; }
-> 	to { opacity: 0; }
-> }
-> ```
-> 
-> #### --clock-tack-*
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* に設定される、各日時の次の値に切り替わるまでの時間を CSS のデータ型 [\<time\>](https://developer.mozilla.org/ja/docs/Web/CSS/time) で示した変数です。単位は ``ms`` です。アスタリスク ``*`` は *[各日時のパラメータ名](#日時のパラメータ名)* になります。
-> 
-> 　この変数が設定されるのは、子孫要素の *[data-clock](#data-clock)* に指定された *[日時のパラメータ名](#日時のパラメータ名)* に限ります。例えば子孫要素に ``data-clock="s"`` しかない場合、 *[\<super-clock\>](#super-clock-日時更新要素)* に設定される変数は ``--clock-tack-s`` だけです。
+　論理属性で、指定されていると以下の [CSS 変数](https://developer.mozilla.org/ja/docs/Web/CSS/--*)を設定します。任意の値を指定すると、以下の変数名やクラス名に含まれる文字列 *tack* を、その値で置き換えます。
+#### --clock-tack-time
+　属性 *[data-clock](#data-clock)* を指定された子孫要素に設定され、その属性が示す日時の値が次の値に切り替わるまでにかかる時間を CSS のデータ型 [\<time\>](https://developer.mozilla.org/ja/docs/Web/CSS/time) で示します。単位は ``ms`` です。例えば、``data-clock="s"`` である場合、``--clock-tack-time`` の値は概ね ``1s`` に近い値を示します。
+
+　この CSS 変数が必要な理由は、日時の値が切り替わる時に、切り替わりに掛かる時間が常に一定とは限らないためです。例えば秒数に応じて要素をアニメーションさせたい時、``animation: keyframes 1s linear 0s infinite...`` とすれば一秒毎にアニメーションが再生されますが、仮に時計の開始時間が 19:30 2.5 である場合、秒が次の値に切り替わる時間は 0.5 秒であるため、19:30 3.0 になっても、アニメーションが再生されるのはその 0.5 秒後になります。これはミリ秒や秒であれば無視できる差かもしれませんが、それ以外では決定的な差を生じさせます。時計の開始時間が 19:30 30.0 で、アニメーションの指定が ``animation: keyframes 60s linear 0s infinite...`` であれば、実際に分が切り替わってから 30 秒もあとにアニメーションが再生されることになります。この時、``--clock-tack-time`` には、``30s`` に近い値が設定され、その後、19:31 0.0 に切り替わった際は、``--clock-tack-time`` には ``60s`` に近い値が改めて設定されます。
+
+　この CSS 変数を CSS プロパティ [animation-iteration-count](https://developer.mozilla.org/ja/docs/Web/CSS/animation-iteration-count) の値を ```infinite``` に設定した上で [animation-duration](https://developer.mozilla.org/ja/docs/Web/CSS/animation-duration) に指定することは推奨されません。再生中のアニメーションは、プロパティに指定された CSS 変数の変化を反映しないためです。属性 *[tack](#tack)* が指定されていると、この CSS 変数を設定すると同時に、日時の値が切り替わった時に、該当の子孫要素のクラス名に ``tack`` を追加します。これは切り替わる度に追加操作が行なわれ、その際に要素に設定されたアニメーションを、その再生状態を問わずに初期化します。この動作に基づいて、以下の例のように指定すると、値の切り替わりと同時に要素を繰り返しアニメーションさせられます。
+```CSS
+.tack {
+	animation: tack var(--clock-tack-time) linear 0s 1 normal forwards running;
+}
+@keyframes tack {
+	from { opacity: 1; }
+	to { opacity: 0; }
+}
+```
+
+#### --clock-tack-*
+　*[\<super-clock\>](#super-clock-日時更新要素)* に設定される、各日時の次の値に切り替わるまでの時間を CSS のデータ型 [\<time\>](https://developer.mozilla.org/ja/docs/Web/CSS/time) で示した変数です。単位は ``ms`` です。アスタリスク ``*`` は *[各日時のパラメータ名](#日時のパラメータ名)* になります。
+
+　この変数が設定されるのは、子孫要素の *[data-clock](#data-clock)* に指定された *[日時のパラメータ名](#日時のパラメータ名)* に限ります。例えば子孫要素に ``data-clock="s"`` しかない場合、 *[\<super-clock\>](#super-clock-日時更新要素)* に設定される変数は ``--clock-tack-s`` だけです。
 
 ### time-zone
-　論理属性で、指定されていると現在日時を[協定世界時](https://ja.wikipedia.org/wiki/%E5%8D%94%E5%AE%9A%E4%B8%96%E7%95%8C%E6%99%82)で表示します。未指定の場合、実行端末に設定された時間（一般的には現地時間）を表示します。
+　論理属性で、指定されていると現在日時を[協定世界時](https://ja.wikipedia.org/wiki/%E5%8D%94%E5%AE%9A%E4%B8%96%E7%95%8C%E6%99%82)で表示します。未指定の場合、実行端末に設定された時間（一般的には現地時間、日本であれば[日本標準時](https://ja.wikipedia.org/wiki/%E6%97%A5%E6%9C%AC%E6%A8%99%E6%BA%96%E6%99%82)）で表示します。
 
 　属性名が *[time-zone](#time-zone)* であるにもかかわらず、この属性を指定するとタイムゾーンを考慮しない日時を表示することになり紛らわしいですが、これは JavaScript の将来的な拡張を想定し、それに対応した変更を施した時に互換性を保つことを目的として命名しています。
 
@@ -99,65 +105,79 @@
 　子孫要素に設定できる属性 *[data-clock](#data-clock)* の既定値を設定します。既定値は ``t`` です。
 
 ## イベント
-### tick
-　日時のいずれかの値が切り替わった時に *[\<super-clock\>](#super-clock-日時更新要素)* を発生源として通知されるイベントです。コールバック関数の第一引数に与えられるイベントオブジェクトのプロパティ ``detail`` には、更新された情報を示す *[SuperClockTickEventObject](#SuperClockTickEventObject)* を列挙した [Array](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Array) が設定されます。
+### tack
+　日時のいずれかの値でそれが数値である時に、その値が 0 に差し掛かった時に*のみ*、 *[\<super-clock\>](#super-clock-日時更新要素)* を発生源として通知されるイベントです。コールバック関数の第一引数に与えられるイベントオブジェクトのプロパティ ``detail`` には、更新された子孫要素の情報を示す *[SuperClockTickEventObject](#superclocktickeventobject)* を列挙した [Array](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Array) が設定されます。
 
-> #### SuperClockTickEventObject
-> ##### clock
-> 更新された子孫要素です。
-> ##### name
-> 更新された日時を示すパラメータ名です。
-> ##### tack
-> 更新された日時の、次の更新までにかかる時間をミリ秒単位で示す整数値です。
+#### SuperClockTickEventObject
+##### as
+　更新された子孫要素に指定された *[日時パラメータ名](#日時のパラメータ名)* に基づいて決定された、実際の *[日時パラメータ名](#日時のパラメータ名)* を示します。このプロパティを用いると、接頭辞 ``-`` が付いた *[日時パラメータ](#日時のパラメータ名)* を指定した時に対応する *[日時パラメータ](#日時のパラメータ名)* を確認できます。例えば ``data-clock="-h"`` の時は ``h`` を示します。
+##### clock
+　更新された子孫要素です。
+##### name
+　更新された *[日時のパラメータ名](#日時のパラメータ名)* です。
+##### paused
+　[Boolean](https://developer.mozilla.org/ja/docs/Glossary/Boolean) で、更新された *[日時のパラメータ](#日時のパラメータ名)* が示す日時が数値である時に、それが ``0`` に達して、[pause](#pause) ないし [data-clock-pause](#data-clock-pause) により表示の更新を停止した時に*のみ* ``true`` を示します。これは子孫要素の日時更新ライフサイクルの中では一度きりであることが期待されます。
+##### pausing
+　[Boolean](https://developer.mozilla.org/ja/docs/Glossary/Boolean) で、更新された *[日時のパラメータ](#日時のパラメータ名)* が示す日時が数値である時に、それが ``0`` に達して、[pause](#pause) ないし [data-clock-pause](#data-clock-pause) により表示の更新を停止している時に ``true`` を示し続けます。
+##### reached
+　[Boolean](https://developer.mozilla.org/ja/docs/Glossary/Boolean) で、更新された *[日時のパラメータ](#日時のパラメータ名)* が示す日時が数値である時に、それが ``0`` に達した時に*のみ* ``true`` を示します。これは子孫要素の日時更新ライフサイクルの中では一度きりであることが期待されます。
+##### reaching
+　[Boolean](https://developer.mozilla.org/ja/docs/Glossary/Boolean) で、更新された *[日時のパラメータ](#日時のパラメータ名)* が示す日時が数値である時に、それが ``0`` に達すると、それ以後 ``true`` を示し続けます。
+##### tack
+　更新された日時の、次の更新までにかかる時間をミリ秒単位で示す整数値です。
+### tick
+　日時のいずれかの値が切り替わった時に *[\<super-clock\>](#super-clock-日時更新要素)* を発生源として通知されるイベントです。コールバック関数の第一引数に与えられるイベントオブジェクトのプロパティ ``detail`` には、更新された子孫要素の情報を示す *[SuperClockTickEventObject](#superclocktickeventobject)* を列挙した [Array](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Array) が設定されます。
 
 ### tick-*
-　特定の日時が切り替わった時に、該当する子孫要素を発生源として通知されるイベントです。アスタリスク ``*`` は *[日時を示す各パラメータ名](#日時のパラメータ名)* です。コールバック関数の第一引数に与えられるイベントオブジェクトのプロパティ ``detail`` には *[SuperClockTickEventObject](#SuperClockTickEventObject)* が設定されます。
+　特定の日時が切り替わった時に、 *[\<super-clock\>](#super-clock-日時更新要素)* を発生源として通知されるイベントです。アスタリスク ``*`` は *[日時を示す各パラメータ名](#日時のパラメータ名)* です。コールバック関数の第一引数に与えられるイベントオブジェクトのプロパティ ``detail`` には、更新された子孫要素に基づいて作成された *[SuperClockTickEventObject](#superclocktickeventobject)* を列挙した [Array](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Array) が指定されます。
 
 ## 対応する子孫要素のカスタムデータ属性
 　*[\<super-clock\>](#super-clock-日時更新要素)* に包含されるすべての要素は以下の[カスタムデータ属性(data-*)](https://developer.mozilla.org/ja/docs/Web/HTML/Global_attributes/data-\*)を指定することで、 *[\<super-clock\>](#super-clock-日時更新要素)* によって行なわれる処理を制御できます。
 ### data-clock
 　要素が *[\<super-clock\>](#super-clock-日時更新要素)* によって日時のどの部分として認識されるかを以下のパラメータ名によって示します。既定値は ``t`` です。 *[\<super-clock\>](#super-clock-日時更新要素)* は、この属性が指定された子孫要素のみを処理の対象とします。
-> #### 日時のパラメータ名
-> ##### -y
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過年数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-y](#v-y)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
-> ##### -m
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過月数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-m](#v-m)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
-> ##### -d
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過日数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-d](#v-d)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
-> ##### -h
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過時間を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-h](#v-h)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
-> ##### -mi
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過分数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-mi](#v-mi)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
-> ##### -s
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過秒数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-s](#v-s)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
-> ##### -ms
-> 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過ミリ秒数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-ms](#v-ms)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
-> ##### y
-> 　西暦の「年」を示します。
-> ##### m
-> 　西暦の「月」を示します。
-> ##### d
-> 　西暦の「日」を示します。
-> ##### h
-> 　24時間制の「時」を示します。
-> ##### mi
-> 　「分」を示します。
-> ##### s
-> 　「秒」を示します。
-> ##### ms
-> 　「ミリ秒」を示します。
-> ##### dn
-> 　「曜日」を示します。曜日は整数値で表され、日曜日を ``0`` として、土曜日まで ``1`` ずつ加算されていきます。
-> ##### hn
-> 　「午前」、「午後」を示します。午前は ``0``、午後は ``1`` で表されます。
-> ##### h12
-> 　12時間制の「時」を示します。
-> ##### t
-> 　UNIX 元期の時間を示します。
+#### 日時のパラメータ名
+##### -y
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過年数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-y](#v-y)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
+##### -m
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過月数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-m](#v-m)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
+##### -d
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過日数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-d](#v-d)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
+##### -h
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過時間を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-h](#v-h)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
+##### -mi
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過分数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-mi](#v-mi)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
+##### -s
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過秒数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-s](#v-s)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
+##### -ms
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過ミリ秒数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-ms](#v-ms)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
+##### y
+　西暦の「年」を示します。
+##### m
+　西暦の「月」を示します。
+##### d
+　西暦の「日」を示します。
+##### h
+　24時間制の「時」を示します。
+##### mi
+　「分」を示します。
+##### s
+　「秒」を示します。
+##### ms
+　「ミリ秒」を示します。
+##### dn
+　「曜日」を示します。曜日は整数値で表され、日曜日を ``0`` として、土曜日まで ``1`` ずつ加算されていきます。
+##### hn
+　「午前」、「午後」を示します。午前は ``0``、午後は ``1`` で表されます。
+##### h12
+　12時間制の「時」を示します。
+##### t
+　UNIX 元期の時間を示します。
 ### data-clock-as-html
 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[as-html](#as-html)* と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。
 ### data-clock-force-text
 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[as-html](#as-html)* と、この要素の *[data-clock-as-html](#data-clock-as-html)* の指定にかかわらず、 *[\<super-clock\>](#super-clock-日時更新要素)* によってこの要素の内容として書き込まれる値をプレーンテキストとして扱うことを強制します。
+### data-clock-invert
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[invert](#invert)* と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。
 ### data-clock-disabled-setdata
 　論理属性で、この属性が指定された要素は *[setdata](#setdata)* による ``data-`` への書き込みが行なわれません。
 ### data-clock-disabled-tack
@@ -170,6 +190,8 @@
 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[pad-pseudo](#pad-pseudo)* と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。
 ### data-clock-pad-str
 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[pad-str](#pad-str)* と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。
+### data-clock-pause
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[pause](#pause)* と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。
 ### data-clock-since
 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* と同等で、 *[\<super-clock\>](#super-clock-日時更新要素)* による同属性の指定をこの属性に指定された値で上書きします。
 ### data-clock-tack
