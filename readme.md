@@ -29,7 +29,11 @@
 ### mute
 　論理属性で、指定されていると時間の更新を行なっていても、子孫要素内のテキストの設定および更新は行ないません。
 ### origin*
-　日時の開始時間を任意の [UNIX 元期](https://ja.wikipedia.org/wiki/UNIX%E6%99%82%E9%96%93)の時間(ミリ秒単位)で指定します。接頭辞に ``+`` と ``-`` があり、``+`` を付けると、それに続くミリ秒単位の時間分、現在時刻を進ませた値を開始時間に設定します。``-`` の場合は、逆に現在時刻から指定された値分遡らせます。既定値は現在時刻です。
+　日時の開始時間を所定の形式で指定します。既定値は現在時刻です。
+
+　整数を指定した場合、その文字列は [UNIX 元期](https://ja.wikipedia.org/wiki/UNIX%E6%99%82%E9%96%93)の時間(ミリ秒単位)として認識され、その時間を開始時刻に設定します。現在時刻から相対的に時間を指定する場合、接頭辞 ``+`` か ``-`` を使います。``+`` を付けると、それに続くミリ秒単位の時間分、現在時刻を進ませます。``-`` の場合は逆で、現在時刻から指定された時間分遡らせます。
+
+　``@`` を接頭辞にすると、それに続く文字列を日時を示す文字列として認識します。この文字列は [Date() コンストラクター](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Date/Date) にそのまま引数として与えられるため、動作は [JavaScript の Date コンストラクターおよび Date.parse() の引数に指定する日付け文字列](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Date/Date#%E5%BC%95%E6%95%B0)に依存します。なお、``@`` の前後の空白および文字列の末尾の空白は許容されます。
 ### pad
 　日時を示す文字列の文字数の上限を整数で指定します。文字数が上限に満たない場合、属性 *[pad-str](#pad-str)* で指定された文字列で補います。既定では不足する文字数分は左方向に対して補われますが、負の整数を指定した場合は右方向へ補われます。既定値は ``0`` です。 ``0`` の場合、更新された日時がそのまま表示されます。
 
@@ -43,7 +47,7 @@
 ### setdata
 　指定されていると、その値を子孫要素の *[data-clock](#data-clock)* の名前として、更新された時間をその値に設定します。値が未指定か、空文字を指定すると、``data-clock-value`` に更新された値が指定されます。
 ### since*
-　子孫要素のカスタムデータ属性 *[data-clock](#data-clock)* の値に接頭辞 ``-`` がある時に、この属性に指定した値を *[origin](#origin)* が示す日時からの経過時間の開始日時とします。値は [origin](#origin) と同じ指定方法が使えます。既定値は ``0`` です。
+　子孫要素のカスタムデータ属性 *[data-clock](#data-clock)* の値に接頭辞 ``-`` がある時に、この属性に指定した値を *[origin](#origin)* が示す日時からの経過時間の開始日時とします。値は *[origin](#origin)* と同じ指定方法が使えます。既定値は ``0`` です。
 ### speed*
 　時間の進む速さを設定します。具体的には、属性 *[timing](#timing)* で指定された値にこの属性に指定された値を乗算します。
 ### tack
@@ -136,6 +140,20 @@
 ### data-clock
 　要素が *[\<super-clock\>](#super-clock-日時更新要素)* によって日時のどの部分として認識されるかを以下のパラメータ名によって示します。既定値は ``t`` です。 *[\<super-clock\>](#super-clock-日時更新要素)* は、この属性が指定された子孫要素のみを処理の対象とします。
 #### 日時のパラメータ名
+##### --y
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの累計年数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-y](#v-y)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
+##### --m
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの累計月数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-m](#v-m)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
+##### --d
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの累計日数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-d](#v-d)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
+##### --h
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの累計時間を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-h](#v-h)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
+##### --mi
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの累計分数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-mi](#v-mi)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
+##### --s
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの累計秒数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-s](#v-s)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
+##### --ms
+　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの累計ミリ秒数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-ms](#v-ms)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
 ##### -y
 　*[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[since](#since)* に指定した日時からの経過年数を示します。このパラメータを指定した時、 *[\<super-clock\>](#super-clock-日時更新要素)* の属性 *[v-y](#v-y)* および子孫要素のカスタムデータ属性 *[data-clock-values](#data-clock-values)* の指定は無視されます。
 ##### -m
@@ -327,7 +345,7 @@
 </html>
 ```
 
-　特定の日時からの経過日数を表示する場合は、属性 *[since](#since)* に [UNIX 元期](https://ja.wikipedia.org/wiki/UNIX%E6%99%82%E9%96%93)でミリ秒に変換した特定の日時を指定し、子孫要素のカスタムデータ属性 *[data-clock](#data-clock)* に接頭辞 ``-`` が付いたいずれかの値を指定します。例えば特定の日時からの経過日数を表示したい場合は ``data-clock="-d"`` を指定します。
+　特定の日時からの経過および累計時間を表示する場合は、属性 *[since](#since)* に任意の日時を指定した上で、子孫要素のカスタムデータ属性 *[data-clock](#data-clock)* に接頭辞 ``-`` ないし ``--`` が付いた[日時パラメータ](#日時のパラメータ名)を指定します。例えば特定の日時からの経過日数を表示したい場合は ``data-clock="-d"`` を指定します。
 
 　これを使えば、例えばゲーム配信を始めてから何日目、あるいは何時間目と言ったことを画面に表示することができるでしょう。そのためには、もちろんその記念となる日時の記録が別に必要になります。また、この処理は通常の日時更新処理に対して相対的に高コストである点は留意すべきかもしれません。
 ```HTML
@@ -335,19 +353,34 @@
 <html lang="ja">
 	<head>
 		<meta charset="utf-8">
-		<title>特定の日時からの経過時間- SuperClock</title>
+		<title>特定の日時からの経過、累計時間- SuperClock</title>
 		<script src="super-clock.js"></script>
 	</head>
 	<body>
+    	
+		<div>
+			<super-clock since="0" auto>
+				1970年1月1日0時0分0秒から
+				<span data-clock="-y"></span>年
+				<span data-clock="-m"></span>ヶ月
+				<span data-clock="-d"></span>日
+				<span data-clock="-h"></span>時間
+				<span data-clock="-mi"></span>分
+				<span data-clock="-s"></span>秒
+				経過中
+			</super-clock>
+		</div>
 		
-		<super-clock since="0" auto>
-			1970年1月1日0時0分0秒から <span data-clock="-y"></span> 年経過中<br>
-			1970年1月1日0時0分0秒から <span data-clock="-m"></span> ヶ月経過中<br>
-			1970年1月1日0時0分0秒から <span data-clock="-d"></span> 日経過中<br>
-			1970年1月1日0時0分0秒から <span data-clock="-h"></span> 時間経過中<br>
-			1970年1月1日0時0分0秒から <span data-clock="-mi"></span> 分経過中<br>
-			1970年1月1日0時0分0秒から <span data-clock="-s"></span> 秒経過中
-		</super-clock>
+		<div>
+			<super-clock since="0" auto>
+				1970年1月1日0時0分0秒から <span data-clock="--y"></span> 年経過中<br>
+				1970年1月1日0時0分0秒から <span data-clock="--m"></span> ヶ月経過中<br>
+				1970年1月1日0時0分0秒から <span data-clock="--d"></span> 日経過中<br>
+				1970年1月1日0時0分0秒から <span data-clock="--h"></span> 時間経過中<br>
+				1970年1月1日0時0分0秒から <span data-clock="--mi"></span> 分経過中<br>
+				1970年1月1日0時0分0秒から <span data-clock="--s"></span> 秒経過中
+			</super-clock>
+		</div>
 		
 	</body>
 </html>

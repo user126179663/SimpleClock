@@ -1,6 +1,3 @@
-//todo ms の検証、現状の処理だと正しい値が表示されないように思える。
-// since 指定時、since の値が origin より大きい場合はカウントダウンになるが、その際に表示される符号 - の表示を制御する手段。(正負の表示を反転させる)
-// カウントダウン、アップの結果正負が反転した時に日時の更新をやめる手段の提供。
 class SuperClock extends HTMLElement {
 	
 	static {
@@ -14,7 +11,14 @@ class SuperClock extends HTMLElement {
 		this.VALUE = 't',
 		
 		this.dn = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ],
-		this.hn = [ 'AM', 'PM' ];
+		this.hn = [ 'AM', 'PM' ],
+		
+		this.observedAttributesValue = [ 'since' ];
+		
+	}
+	static get observedAttributes() {
+		
+		return this.observedAttributesValue;
 		
 	}
 	
@@ -38,18 +42,18 @@ class SuperClock extends HTMLElement {
 	
 	static tick() {
 		
-		const	{ from, last, names, origin, reached, speed, style, timing } = this,
+		const	{ from, last, names, origin, reached, speed, style, ticked, timing } = this,
 				clocks = this.querySelectorAll('[data-clock]'), cl = clocks.length,
 				current = Date.now(), lag = this.tack ? (current - this.tack) - timing : 0,
 				updates = [];
-		let i,l,i0,i1,k,v,v0;
+		let i,l,i0,i1,k,v,v0,v1;
 		
 		this.tack && (this.accumulation += lag),
 		i = i0 = -1, this.now = new Date(origin + (current - from) * speed), updates.length = 0;
 		//this.now = new Date(origin + ((current - this.accumulation) - from) * speed);
 		while (++i < cl) names.indexOf(v = this.write(clocks[i]).name) === -1 && (names[++i0] = v);
 		
-		i1 = -1;
+		i0 = -1;
 		for (k in last) {
 			
 			if (names.indexOf(k) === -1) {
@@ -58,20 +62,21 @@ class SuperClock extends HTMLElement {
 				
 			} else if ('v' in (v = last[k])) {
 				
-				const detail = [];
-				
 				style.setProperty('--clock-tack-' + k, v.v),
 				
 				delete v.v, v.i = v.i0, delete v.i0,
 				
-				i = -1, l = (v0 = v.updates).length;
-				while (++i < l) updates[++i1] = detail[i] = v0[i];
+				i = -1, l = (v0 = v.updates).length, i1 = (v1 = ticked[v.as] ??= []).length;
+				while (++i < l) updates[++i0] = v1[i1++] = v0[i];
 				
-				this.dispatchEvent(new CustomEvent('tick-' + k, { detail })), v0.length = 0;
+				v0.length = 0;
 				
 			}
 			
 		}
+		
+		for (k in ticked)	(v = ticked[k])?.length ?
+			(this.dispatchEvent(new CustomEvent('tick-' + k, { detail: [ ...v ] })), v.length = 0) : delete ticked[k];
 		
 		names.length = 0,
 		
@@ -88,24 +93,24 @@ class SuperClock extends HTMLElement {
 		return date['get' + (timeZone ? 'UTC' : '') + valueName[0].toUpperCase() + valueName.slice(1)]();
 		
 	}
-	
 	static getStaticDateMod(source, timeZone) {
 		
 		source instanceof Date || (source = Array.isArray(source) ? new Date(...source) : new Date(source));
 		
-		const { getDateValue } = SuperClock, hours = getDateValue(source, 'hours', timeZone);
+		const { getDateValue } = SuperClock, h = getDateValue(source, 'hours', timeZone);
 		
 		return	{
 						
 						source,
 						
-						year: getDateValue(source, 'fullYear', timeZone),
-						month: getDateValue(source, 'month', timeZone),
-						day: getDateValue(source, 'date', timeZone),
-						hours,
-						mins: getDateValue(source, 'minutes', timeZone),
-						secs: getDateValue(source, 'seconds', timeZone),
-						msecs: getDateValue(source, 'milliseconds', timeZone),
+						y: getDateValue(source, 'fullYear', timeZone),
+						m: getDateValue(source, 'month', timeZone),
+						d: getDateValue(source, 'date', timeZone),
+						h,
+						mi: getDateValue(source, 'minutes', timeZone),
+						s: getDateValue(source, 'seconds', timeZone),
+						ms: getDateValue(source, 'milliseconds', timeZone),
+						
 						time: source.getTime()
 						
 					};
@@ -120,6 +125,8 @@ class SuperClock extends HTMLElement {
 			const elapsed = getElapseMod(from.source, to.source, timeZone);
 			let k;
 			
+			k = elapsed.to, elapsed.to = elapsed.from, elapsed.from = k;
+			
 			for (k in elapsed) typeof elapsed[k] === 'number' && (elapsed[k] = -elapsed[k]);
 			
 			return elapsed;
@@ -127,40 +134,41 @@ class SuperClock extends HTMLElement {
 		}
 		
 		const monthly = [];
-		let i, daysCount, mo, isLeap, time,years,days,months,hours,mins,secs,msecs, y,m,d,h,mi,s,ms;
+		let i, daysCount, mo, isLeap, time,y,d,m,h,mi,s,ms, _y,_m,_d,_h,_mi,_s,_ms;
 		
-		i = months = -1, years = 0,
-		daysCount = d = parseInt(parseInt((time = from.time - to.time) / 1000) / 86400),
-		mo = from.month + 1, isLeap = !((y = from.year) % 4 || !(y % 100) && y % 400), ++to.month;
+		i = m = -1, y = 0,
+		daysCount = _d = parseInt(parseInt((time = from.time - to.time) / 1000) / 86400),
+		mo = from.m + 1, isLeap = !((_y = from.y) % 4 || !(_y % 100) && _y % 400), ++to.m;
 		while ((daysCount -= monthly[i] ?? 0) >= 0) {
 			
 			monthly[++i] = --mo === 1 ? isLeap ? 29 : 28 : mo === 3 || mo === 5 || mo === 8 || mo === 10 ? 30 : 31,
 			
 			mo ||= 12,
 			
-			++months === 12 && (++years, months = 0, isLeap = !(--y % 4 || !(y % 100) && y % 400));
+			++m === 12 && (++y, m = 0, isLeap = !(--_y % 4 || !(_y % 100) && _y % 400));
 			
 		}
 		
-		days = (months = (years ||= null) === null && !months ? null : months) === null &&
-			!(monthly[i] += daysCount) ? null : monthly[i],
+		m = (y ||= null) === null && !m ? null : m,
+		d = (monthly[i] += daysCount) ? monthly[i] : m === null ? null : 0,
 		
-		hours = from.hours < to.hours ? (24 - to.hours) + from.hours : from.hours - to.hours,
-		mins = from.mins < to.mins ? (--hours, (60 - to.mins) + from.mins) : from.mins - to.mins,
-		secs = from.secs < to.secs ? (--mins, (60 - to.secs) + from.secs) : from.secs - to.secs,
-		msecs = from.msecs < to.msecs ? (--secs, (1000 - to.msecs) + from.msecs) : from.msecs - to.msecs,
+		h = from.h < to.h ? (24 - to.h) + from.h : from.h - to.h,
+		mi = from.mi < to.mi ? (60 - to.mi) + from.mi : from.mi - to.mi,
+		s = from.s < to.s ? ((60 - to.s) + (from.s)) : from.s - to.s,
+		ms = from.ms < to.ms ? ((1000 - to.ms) + from.ms) : from.ms - to.ms,
 		
-		days === null && !hours &&
-			(hours = null, mins || (mins = null, secs ||
-				(secs = null, msecs || (msecs = null)))),
+		from.s < to.s && (_mi = --mi) < 0 && (mi = 60 + mi),
+		from.mi <= to.mi && from.s <= to.s && (mi || _mi !== undefined) && (_h = --h) < 0 && (h = 24 + h),
 		
-		m = (((y = years) || 0) * 12 + months) || null,
-		h = (((d ||= null) || 0) * 24 + hours) || null,
-		mi = ((h || 0) * 60 + mins) || null,
-		s = ((mi || 0) * 60 + secs) || null,
-		ms = ((s || 0) * 1000 + msecs) || null;
+		d === null && !h && (h = null, mi || (mi = null, s || (s = null, ms || (ms = null)))),
 		
-		return { y, m, d, h, mi, s, ms };
+		_m = (((_y = y) || 0) * 12 + m) || null,
+		_h = (((_d ||= null) || 0) * 24 + h) || null,
+		_mi = ((_h || 0) * 60 + mi) || null,
+		_s = ((_mi || 0) * 60 + s) || null,
+		_ms = ((_s || 0) * 1000 + ms) || null;
+		
+		return { y, m, d, h, mi, s, ms, '-y': _y, '-m': _m, '-d': _d, '-h': _h, '-mi': _mi, '-s': _s, '-ms': _ms };
 		
 	}
 	
@@ -170,12 +178,20 @@ class SuperClock extends HTMLElement {
 		
 		this.tick = SuperClock.tick.bind(this),
 		
-		this.last = {}, this.names = [], this.reached = [];
+		this.last = {}, this.ticked = {}, this.names = [], this.reached = [];
 		
 	}
 	connectedCallback() {
 		
 		this.auto && this.start();
+		
+	}
+	attributeChangedCallback() {
+		
+		switch (name) {
+			case 'since':
+			break;
+		}
 		
 	}
 	
@@ -229,13 +245,14 @@ class SuperClock extends HTMLElement {
 				{ asHTML, invert, pad, padPseudo, padStr, pause, since, tack, timeZone, value, values } =
 					this.fetchClockData(clock),
 				accumulates = value[0] === '-',
+				slicePosition = accumulates && value[1] === '-' ? 2 : 1,
 				padAbs = Math.abs(pad),
 				sinceValue = isNaN(since) ? 0 : typeof since === 'number' ? since : (since?.getTime?.() ?? 0),
 				nowTime = now.getTime(),
 				timeZoneMsecs = now.getTimezoneOffset() * 60000;
 		let i,i0,v,v0, from, remained,value0,vk, across, paused;
 		
-		switch (value0 = accumulates ? value.slice(1) : value) {
+		switch (value0 = accumulates ? value.slice(slicePosition) : value) {
 			
 			case 'y':
 			i = getDateValue(now, 'fullYear', timeZone),
@@ -346,17 +363,15 @@ class SuperClock extends HTMLElement {
 			clock.classList.remove('clock-reached'),
 		
 		v = accumulates ?
-			(v0 = getElapseMod(sinceValue - timeZoneMsecs, nowTime - timeZoneMsecs, timeZone))[value0] ?? 0 :
+			(i = (v0 = getElapseMod(sinceValue - timeZoneMsecs, nowTime - timeZoneMsecs, timeZone))[value.slice(1)] ?? 0) :
 			values?.[i] ?? this?.[vk ||= 'v' + value0[0].toUpperCase() + value0.slice(1)]?.[i] ?? i0 ?? i,
-		isNaN(+v) || (
-				//accumulates && across && (v >= 0 ? ++v : --v),
-				invert && v && (v *= -1)
-			);
+		
+		isNaN(+v) || (invert && (v ? (v *= -1) : (v = Object.is(v, 0) ? -0 : 0)));
 		
 		const reached = across && pause !== null,
-				lastValue = last[value0] ??= {},
+				lastValue = last[value] ??= {},
 				event = {
-						as: value0,
+						as: lastValue.as = value0,
 						clock,
 						name: value,
 						reached,
@@ -365,7 +380,7 @@ class SuperClock extends HTMLElement {
 						reached: across && paused !== undefined,
 						reaching: across
 					},
-				signed = typeof v === 'number' && v < 0,
+				signed = typeof v === 'number' && (v ? v < 0 : Object.is(v, -0)),
 				pv = '' + (signed ? v * -1 : v);
 		
 		if (pad && padPseudo && padStr) {
@@ -418,28 +433,11 @@ class SuperClock extends HTMLElement {
 			
 			(lastValue.updates ||= [])[lastValue.updates.length] = event;
 			
-			//this.dispatchEvent(new CustomEvent('tick-' + value0, { detail: event }));
-			
 		}
 		
 		return event;
 		
 	}
-	
-	//getDiff() {
-	//	
-	//	const origin = this.getAttribute('origin')?.trim?.() ?? '';
-	//	
-	//	// 以下のようにビット演算子で値を整数に変換すると、値が符号付き 32 ビットの範囲(-2147483648 から 2147483647) を超えると
-	//	// ビット演算子の仕様に基づき正負が反転する。（例: 2147483648|0) そのため parseInt を用いて変換するように改修。
-	//	//return origin ? origin[0] === '+' ? origin.slice(1)|0 : origin[0] === '-' ? -origin.slice(1)|0 : origin : origin;
-	//	
-	//	return	origin ?
-	//					origin[0] === '+' ? parseInt(origin.slice(1)) :
-	//						origin[0] === '-' ? -parseInt(origin.slice(1)) : origin :
-	//					origin;
-	//	
-	//}
 	
 	getValues(key, defaultValue) {
 		
@@ -447,22 +445,48 @@ class SuperClock extends HTMLElement {
 		
 	}
 	
-	getAttrNumValue(name, value = 0, defaultValue = null) {
-		
-		const attr = this.getAttribute(name);
-		let v;
-		
-		v = (v = attr?.trim?.() ?? attr) ?	v[0] === '+' ? parseInt(v.slice(1)) :
-														v[0] === '-' ? -parseInt(v.slice(1)) : v :
-														v;
-		
-		return typeof v === 'number' ? value + v : v ? Number.isNaN(v = parseInt(v)) ? defaultValue : v : defaultValue;
-		
-	}
+	//getAttrNumValue(name, value = 0, defaultValue = null) {
+	//	
+	//	const attr = this.getAttribute(name);
+	//	let v;
+	//	
+	//	v = (v = attr?.trim?.() ?? attr) ?	v[0] === '+' ? parseInt(v.slice(1)) :
+	//													v[0] === '-' ? -parseInt(v.slice(1)) : v :
+	//													v;
+	//	
+	//	return typeof v === 'number' ? value + v : v ? Number.isNaN(v = parseInt(v)) ? defaultValue : v : defaultValue;
+	//	
+	//}
+	//
+	//getAttrTimeValue(name, value = this.from ?? 0, defaultValue = value) {
+	//	
+	//	let attr;
+	//	hi(name, value);
+	//	(attr = value?.[0]?.trim?.()) === '@' ?
+	//		Number.isNaN(attr = Date(attr.slice(1)).parse()) && (attr = defaultValue) :
+	//		(attr = SuperClock.prototype.getAttrNumValue.call(this, name, value, defaultValue));
+	//	
+	//	return this.floor ? Math.floor(parseInt(attr / 1000) * 1000) : attr;
+	//	
+	//}
 	
 	getAttrTimeValue(name, value = this.from ?? 0, defaultValue = value) {
 		
-		const attr = SuperClock.prototype.getAttrNumValue.call(this, name, value, defaultValue);
+		let attr, asDateString;
+		
+		attr = (asDateString = (attr = (attr = this.getAttribute(name))?.trim?.() ?? attr)?.[0] === '@') ?
+			Number.isNaN(attr = Date.parse(attr.slice(1).trimStart())) ? (asDateString = false, defaultValue) : attr :
+			(
+				attr ?	attr[0] === '+' ? parseInt(attr.slice(1)) :
+							attr[0] === '-' ? -parseInt(attr.slice(1)) : attr :
+							attr
+			),
+		
+		asDateString ||
+			(
+				attr =	typeof attr === 'number' ? value + attr :
+								attr ? Number.isNaN(attr = parseInt(attr)) ? defaultValue : attr : defaultValue
+			);
 		
 		return this.floor ? Math.floor(parseInt(attr / 1000) * 1000) : attr;
 		
@@ -498,11 +522,6 @@ class SuperClock extends HTMLElement {
 	}
 	
 	get origin() {
-		
-		//const	{ from = 0 } = this, diff = SuperClock.getDiff(this.getAttribute('origin'), from),
-		//		origin = typeof diff === 'number' ? from + diff : diff ? parseInt(diff) : from;
-		//
-		//return this.floor ? parseInt(origin / 1000) * 1000 : origin;
 		
 		return this.getAttrTimeValue('origin');
 		
