@@ -347,7 +347,7 @@
 
 　特定の日時からの経過および累計時間を表示する場合は、属性 *[since](#since)* に任意の日時を指定した上で、子孫要素のカスタムデータ属性 *[data-clock](#data-clock)* に接頭辞 ``-`` ないし ``--`` が付いた[日時パラメータ](#日時のパラメータ名)を指定します。例えば特定の日時からの経過日数を表示したい場合は ``data-clock="-d"`` を指定します。
 
-　これを使えば、例えばゲーム配信を始めてから何日目、あるいは何時間目と言ったことを画面に表示することができるでしょう。そのためには、もちろんその記念となる日時の記録が別に必要になります。また、この処理は通常の日時更新処理に対して相対的に高コストである点は留意すべきかもしれません。
+　これを使えば、例えば配信を始めてから何日目、あるいは何時間目と言ったことを画面に表示することができるでしょう。そのためには、もちろんその記念となる日時の記録が別に必要になります。また、この処理は通常の日時更新処理に対して相対的に高コストである点は留意すべきかもしれません。配信で使う場合、配信者と視聴者の間にはどれだけ短くても数秒以上のラグが存在することも気に留めておく必要があります。このラグは *[origin](#origin)* の ``+`` 指定で見かけ上縮めることは可能かもしれませんが、視聴者の所在地によってラグは変化するため、本質的な解決にはなり得ません。表示している時間にラグを含まれることを何らかの手段で視聴者に伝えるのは有意と言えるでしょう。
 ```HTML
 <!DOCTYPE html>
 <html lang="ja">
@@ -359,27 +359,31 @@
 	<body>
     	
 		<div>
+			
 			<super-clock since="0" auto>
-				1970年1月1日0時0分0秒から
-				<span data-clock="-y"></span>年
-				<span data-clock="-m"></span>ヶ月
-				<span data-clock="-d"></span>日
-				<span data-clock="-h"></span>時間
-				<span data-clock="-mi"></span>分
-				<span data-clock="-s"></span>秒
-				経過中
+				
+				<div>
+					1970年1月1日0時0分0秒から
+					<span data-clock="-y"></span>年
+					<span data-clock="-m"></span>ヶ月
+					<span data-clock="-d"></span>日
+					<span data-clock="-h"></span>時間
+					<span data-clock="-mi"></span>分
+					<span data-clock="-s"></span>秒
+					経過中
+				</div>
+				
+				<div>
+					1970年1月1日0時0分0秒から <span data-clock="--y"></span> 年経過中<br>
+					1970年1月1日0時0分0秒から <span data-clock="--m"></span> ヶ月経過中<br>
+					1970年1月1日0時0分0秒から <span data-clock="--d"></span> 日経過中<br>
+					1970年1月1日0時0分0秒から <span data-clock="--h"></span> 時間経過中<br>
+					1970年1月1日0時0分0秒から <span data-clock="--mi"></span> 分経過中<br>
+					1970年1月1日0時0分0秒から <span data-clock="--s"></span> 秒経過中
+				</div>
+				
 			</super-clock>
-		</div>
-		
-		<div>
-			<super-clock since="0" auto>
-				1970年1月1日0時0分0秒から <span data-clock="--y"></span> 年経過中<br>
-				1970年1月1日0時0分0秒から <span data-clock="--m"></span> ヶ月経過中<br>
-				1970年1月1日0時0分0秒から <span data-clock="--d"></span> 日経過中<br>
-				1970年1月1日0時0分0秒から <span data-clock="--h"></span> 時間経過中<br>
-				1970年1月1日0時0分0秒から <span data-clock="--mi"></span> 分経過中<br>
-				1970年1月1日0時0分0秒から <span data-clock="--s"></span> 秒経過中
-			</super-clock>
+			d
 		</div>
 		
 	</body>

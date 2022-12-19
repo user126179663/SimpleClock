@@ -11,16 +11,16 @@ class SuperClock extends HTMLElement {
 		this.VALUE = 't',
 		
 		this.dn = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ],
-		this.hn = [ 'AM', 'PM' ],
+		this.hn = [ 'AM', 'PM' ];
 		
-		this.observedAttributesValue = [ 'since' ];
-		
-	}
-	static get observedAttributes() {
-		
-		return this.observedAttributesValue;
+		//this.observedAttributesValue = [ 'since' ];
 		
 	}
+	//static get observedAttributes() {
+	//	
+	//	return this.observedAttributesValue;
+	//	
+	//}
 	
 	static getDiff(v) {
 		
@@ -46,12 +46,13 @@ class SuperClock extends HTMLElement {
 				clocks = this.querySelectorAll('[data-clock]'), cl = clocks.length,
 				current = Date.now(), lag = this.tack ? (current - this.tack) - timing : 0,
 				updates = [];
-		let i,l,i0,i1,k,v,v0,v1;
+		let i,l,i0,i1,k,v,v0,v1, clock;
 		
 		this.tack && (this.accumulation += lag),
 		i = i0 = -1, this.now = new Date(origin + (current - from) * speed), updates.length = 0;
 		//this.now = new Date(origin + ((current - this.accumulation) - from) * speed);
-		while (++i < cl) names.indexOf(v = this.write(clocks[i]).name) === -1 && (names[++i0] = v);
+		while (++i < cl)	(clock = clocks[i]).closest('super-clock') === this &&
+									names.indexOf(v = this.write(clock).name) === -1 && (names[++i0] = v);
 		
 		i0 = -1;
 		for (k in last) {
@@ -184,14 +185,6 @@ class SuperClock extends HTMLElement {
 	connectedCallback() {
 		
 		this.auto && this.start();
-		
-	}
-	attributeChangedCallback() {
-		
-		switch (name) {
-			case 'since':
-			break;
-		}
 		
 	}
 	
@@ -444,31 +437,6 @@ class SuperClock extends HTMLElement {
 		return SuperClock.getValues(this.getAttribute('v-' + key), defaultValue);
 		
 	}
-	
-	//getAttrNumValue(name, value = 0, defaultValue = null) {
-	//	
-	//	const attr = this.getAttribute(name);
-	//	let v;
-	//	
-	//	v = (v = attr?.trim?.() ?? attr) ?	v[0] === '+' ? parseInt(v.slice(1)) :
-	//													v[0] === '-' ? -parseInt(v.slice(1)) : v :
-	//													v;
-	//	
-	//	return typeof v === 'number' ? value + v : v ? Number.isNaN(v = parseInt(v)) ? defaultValue : v : defaultValue;
-	//	
-	//}
-	//
-	//getAttrTimeValue(name, value = this.from ?? 0, defaultValue = value) {
-	//	
-	//	let attr;
-	//	hi(name, value);
-	//	(attr = value?.[0]?.trim?.()) === '@' ?
-	//		Number.isNaN(attr = Date(attr.slice(1)).parse()) && (attr = defaultValue) :
-	//		(attr = SuperClock.prototype.getAttrNumValue.call(this, name, value, defaultValue));
-	//	
-	//	return this.floor ? Math.floor(parseInt(attr / 1000) * 1000) : attr;
-	//	
-	//}
 	
 	getAttrTimeValue(name, value = this.from ?? 0, defaultValue = value) {
 		
