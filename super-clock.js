@@ -230,7 +230,7 @@ class SuperClock extends HTMLElement {
 	
 	write(clock) {
 		
-		if (!(clock instanceof HTMLElement)) return;
+		if (!(clock instanceof Element)) return;
 		
 		const	{ isNaN } = Number,
 				{ getDateValue, getElapseMod } = SuperClock,
