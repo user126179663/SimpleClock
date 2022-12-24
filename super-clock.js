@@ -169,7 +169,7 @@ class SuperClock extends HTMLElement {
 		_s = ((_mi || 0) * 60 + s) || null,
 		_ms = ((_s || 0) * 1000 + ms) || null;
 		
-		return { y, m, d, h, mi, s, ms, '-y': _y, '-m': _m, '-d': _d, '-h': _h, '-mi': _mi, '-s': _s, '-ms': _ms };
+		return { y, m, d, h, mi, s, ms, '-y': _y, '-m': _m, '-d': _d, '-h': _h, '-mi': _mi, '-s': _s, '-ms': _ms, direction: 1 };
 		
 	}
 	
@@ -356,7 +356,10 @@ class SuperClock extends HTMLElement {
 			clock.classList.remove('clock-reached'),
 		
 		v = accumulates ?
-			(i = (v0 = getElapseMod(sinceValue - timeZoneMsecs, nowTime - timeZoneMsecs, timeZone))[value.slice(1)] ?? 0) :
+			(
+				i =	(v0 = getElapseMod(sinceValue - timeZoneMsecs, nowTime - timeZoneMsecs, timeZone))[value.slice(1)] ??
+							0 * v0.direction
+			) :
 			values?.[i] ?? this?.[vk ||= 'v' + value0[0].toUpperCase() + value0.slice(1)]?.[i] ?? i0 ?? i,
 		
 		isNaN(+v) || (invert && (v ? (v *= -1) : (v = Object.is(v, 0) ? -0 : 0)));
